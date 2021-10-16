@@ -1,0 +1,183 @@
+%% LyX 1.3 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english, 12pt]{article}
+\usepackage{times}
+%\usepackage{algorithm2e}
+\usepackage{url}
+\usepackage{bbm}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=1.5cm,rmargin=1.5cm}
+\usepackage{rotating}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{setspace}
+\usepackage{lineno}
+\usepackage{hyperref}
+\usepackage{bbm}
+\usepackage{makecell}
+
+%\renewcommand{\arraystretch}{1.8}
+
+\usepackage{xr}
+\externaldocument{paper-ancestry-prop-supp}
+
+%\linenumbers
+%\doublespacing
+\onehalfspacing
+%\usepackage[authoryear]{natbib}
+\usepackage{natbib} \bibpunct{(}{)}{;}{author-year}{}{,}
+
+%Pour les rajouts
+\usepackage{color}
+\definecolor{trustcolor}{rgb}{0,0,1}
+
+\usepackage{dsfont}
+\usepackage[warn]{textcomp}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+
+\let\tabbeg\tabular
+\let\tabend\endtabular
+\renewenvironment{tabular}{\begin{adjustbox}{max width=0.95\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+%\newcommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\usepackage{babel}
+\makeatother
+
+
+\begin{document}
+
+
+\title{Using the UK Biobank as a global reference: application to measuring ancestry diversity from GWAS summary statistics}
+\author{Florian Priv\'e$^{\text{1}}$}
+
+\date{~ }
+\maketitle
+
+\noindent$^{\text{\sf 1}}$National Centre for Register-based Research, Aarhus University, Aarhus, 8210, Denmark. \\
+
+\noindent Contact:
+\begin{itemize}
+\item \url{florian.prive.21@gmail.com}
+\end{itemize}
+
+\vspace*{5em}
+
+\abstract{
+	The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
+	Within this dataset, we carefully define 21 distinct ancestry groups from all four corners of the world. 
+	Using allele frequencies derived from these global reference groups, we are now able to effectively measure diversity from summary statistics of any genetic dataset.
+	Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+[TODO: TALK ABOUT OTHER DATASETS AND WHY CHOOSING THE UKBB]
+
+The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
+Despite being a cohort from the UK, this dataset is so large that it includes individuals that were born in all four corners of the world. 
+Here, by carefully using information on self-reported ancestry, country of birth and genetic similarity, we define 21 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
+This includes five groups with genetic ancestries from Africa, eight from Europe, three from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:counts}).
+The detailed procedure used to define these groups is presented in the Supplementary Materials.
+We provide [TODO FINISH \#VARIANTS].
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|c||l|c||l|c|}
+		\hline
+		Ancestry group & N & Ancestry group & N & Ancestry group & N \\
+		\hline
+		Japan & 240 (+ 104) & Asia (East) & 504 & Philippines & 304 \\
+		Caribbean & 660 & Africa (West) & 655 & Africa (South) & 362 \\
+		Africa (East 1) & 193 & Africa (East 2) & 134 & Middle East & 509 \\
+		Pakistan & 388 & Sri Lanka & 365 & Bangladesh & 223 (+ 86) \\
+		Europe (North West) & 54556 & Finland & 143 (+ 99) & Scandinavia & 342 \\
+		Europe (North East) & 259 & Europe (South East) & 344 & Europe (South West) & 605 \\
+		Europe (Central) & 559 & Ashkenazi & 1975 & South America & 560 \\
+		\hline
+	\end{tabular}
+	\caption{Number of individuals (N) in each of the 21 ancestry groups we define in the UK Biobank. Numbers in parentheses represent the added individuals from the 1000 Genomes data.}
+	\label{tab:counts}
+\end{table}
+
+Then, we propose to estimate ancestry proportions from a cohort based on its allele frequencies and the reference set of allele frequencies described previously.
+We propose to find the mixture proportions $\alpha_k$ which minimize the following problem:
+\(\sum_{j=1}^M \left(w_j  f_j^{(0)} - \sum_{k=1}^K \alpha_k w_j f_j^{(k)} \right)^2 ,\)
+where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
+By further constraining all $w_j$ to be positive and sum to 1 (convex combination) in the optimization, we can interpret these coefficients as ancestry proportions.
+This is similar to Summix \cite[]{arriaga2021summix}, although we introduce weights $w_j = 1 / \sqrt{f_j^{(0)} (1 - f_j^{(0)})}$ to account for more variability in more common variants.
+This optimization problem is a standard quadratic programming problem that can be solved using R package quadprog \cite[]{turlach2013quadprog}, and that we implement in function [TODO] in our R package bigsnpr \cite[]{prive2017efficient}.
+
+%% Around 320 words already %%
+
+[TODO: CONCLU] Using allele frequencies derived from these groups, we are now able to effectively measure diversity from summary statistics of a genetic dataset.
+Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
+
+
+\begin{figure}[!htpb]
+	%\centerline{\includegraphics[width=0.7\textwidth]{timings.pdf}}
+	\caption{Computation times of \texttt{pcadapt} as a function of the number of PCs used. Black points represent timings with pcadapt v4, and the dashed blue line represents the timing with v3, which is independent of the number of PC used. \label{fig:timings}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\section*{Software and code availability}
+
+[TODO]
+
+\section*{Acknowledgements}
+
+F.P.\ is supported by the Danish National Research Foundation (Niels Bohr Professorship to John McGrath) and by a Lundbeck Foundation Fellowship (R335-2019-2339 to Bjarni J. Vilhj\'almsson).
+The author thanks GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
+This research has been conducted using the UK Biobank Resource under Application Number 58024.
+
+
+\section*{Declaration of Interests}
+
+The author declares no competing interests.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\bibliographystyle{natbib}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+%\section*{Supplementary Materials}
+%
+%\renewcommand{\thefigure}{S\arabic{figure}}
+%\setcounter{figure}{0}
+%\renewcommand{\thetable}{S\arabic{table}}
+%\setcounter{table}{0}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
