@@ -76,7 +76,7 @@
 \item \url{florian.prive.21@gmail.com}
 \end{itemize}
 
-\vspace*{5em}
+\vspace*{3em}
 
 \abstract{
 	The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
@@ -85,40 +85,25 @@
 	Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
 }
 
+\vspace*{5em}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\clearpage
+%\clearpage
 
-[TODO: TALK ABOUT OTHER DATASETS AND WHY CHOOSING THE UKBB]
-
+% 185 words
+Several projects have focused on providing genetic data from diverse populations, such as the HapMap project, the 1000 genomes project, the Simons genome diversity project, and the human genome diversity project \cite[]{international2010integrating,10002015global,mallick2016simons,bergstrom2020insights}.
+However, these datasets are not very large and do not provide many individuals per population.
 The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
 Despite being a cohort from the UK, this dataset is so large that it includes individuals that were born in all four corners of the world. 
-Here, by carefully using information on self-reported ancestry, country of birth and genetic similarity, we define 26 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
+Here we carefully use information on self-reported ancestry, country of birth, and genetic similarity to define 26 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
 This includes ten groups with genetic ancestries from Europe, seven from Africa, four from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:counts}).
 The detailed procedure used to define these groups is presented in the Supplementary Materials.
 We provide [TODO FINISH \#VARIANTS].
 
-\begin{table}[h]
-	\centering
-	\begin{tabular}{|l|c||l|c||l|c|}
-		\hline
-		Ancestry group & N & Ancestry group & N & Ancestry group & N \\
-		\hline
-		Japan & 240 (+ 104) & Asia (East) & 504 & Philippines & 304 \\
-		Caribbean & 660 & Africa (West) & 655 & Africa (South) & 362 \\
-		Africa (East 1) & 193 & Africa (East 2) & 134 & Middle East & 509 \\
-		Pakistan & 388 & Sri Lanka & 365 & Bangladesh & 223 (+ 86) \\
-		Europe (North West) & 54556 & Finland & 143 (+ 99) & Scandinavia & 342 \\
-		Europe (North East) & 259 & Europe (South East) & 344 & Europe (South West) & 605 \\
-		Europe (Central) & 559 & Ashkenazi & 1975 & South America & 560 \\
-		\hline
-	\end{tabular}
-	\caption{Number of individuals (N) in each of the 21 ancestry groups we define in the UK Biobank. Numbers in parentheses represent the added individuals from the 1000 Genomes data.}
-	\label{tab:counts}
-\end{table}
 
-Then, we propose to estimate ancestry proportions from a cohort based on its allele frequencies and the reference set of allele frequencies described previously.
+% 185 words
+Then, as a use-case for this new reference set of allele frequencies we provide, we propose to estimate global ancestry proportions from a cohort based on its allele frequencies only.
 We propose to find the mixture proportions $\alpha_k$ which minimize the following problem:
 \(\sum_{j=1}^M \left(w_j  f_j^{(0)} - \sum_{k=1}^K \alpha_k w_j f_j^{(k)} \right)^2 ,\)
 where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
@@ -162,9 +147,13 @@ This optimization problem is a standard quadratic programming problem that can b
 		\end{tabular}
 \end{table}
 
+Citations for the allele frequencies used: the UK Biobank (UKBB, \cite{bycroft2018uk}), the Biobank Japan (BBJ, \cite{sakaue2021cross}), FinnGen (\url{https://r5.finngen.fi/}), GERA \cite[]{hoffmann2018large}, PAGE \cite[]{wojcik2019genetic}, kidney function \cite[]{yu2021polygenic}, COVID-19 \cite[]{ganna2021mapping}, epilepsy \cite[]{consortium2018genome}, body fat percentage \cite[]{lu2016new}, eczema \cite[]{paternoster2015multi}, prostate cancer (PrCa, \cite{schumacher2018association}), breast cancer (BrCa, \cite{michailidou2017association}), and coronary artery disease (CAD, \cite{nikpay2015comprehensive}). Several of them have been downloaded through the NHGRI-EBI GWAS Catalog \cite[]{macarthur2017new}. 
 
-[TODO: CONCLU] Using allele frequencies derived from these groups, we are now able to effectively measure diversity from summary statistics of a genetic dataset.
+% 83 words
+Here we provide an unprecedentedly large and diverse reference set of allele frequencies using the UK Biobank.
+We then show how to effectively measure diversity from GWAS summary statistics using this new set of reference allele frequencies.
 Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
+This is one of the many applications of the new set we provide.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -187,7 +176,7 @@ The author declares no competing interests.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\clearpage
+%\clearpage
 
 \bibliographystyle{natbib}
 \bibliography{refs}
