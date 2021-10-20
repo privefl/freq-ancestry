@@ -80,7 +80,7 @@
 
 \abstract{
 	The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
-	Within this dataset, we carefully define 21 distinct ancestry groups from all four corners of the world. 
+	Within this dataset, we carefully define 26 distinct ancestry groups from all four corners of the world. 
 	Using allele frequencies derived from these global reference groups, we are now able to effectively measure diversity from summary statistics of any genetic dataset.
 	Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
 }
@@ -94,8 +94,8 @@
 
 The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
 Despite being a cohort from the UK, this dataset is so large that it includes individuals that were born in all four corners of the world. 
-Here, by carefully using information on self-reported ancestry, country of birth and genetic similarity, we define 21 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
-This includes five groups with genetic ancestries from Africa, eight from Europe, three from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:counts}).
+Here, by carefully using information on self-reported ancestry, country of birth and genetic similarity, we define 26 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
+This includes ten groups with genetic ancestries from Europe, seven from Africa, four from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:counts}).
 The detailed procedure used to define these groups is presented in the Supplementary Materials.
 We provide [TODO FINISH \#VARIANTS].
 
@@ -122,20 +122,49 @@ Then, we propose to estimate ancestry proportions from a cohort based on its all
 We propose to find the mixture proportions $\alpha_k$ which minimize the following problem:
 \(\sum_{j=1}^M \left(w_j  f_j^{(0)} - \sum_{k=1}^K \alpha_k w_j f_j^{(k)} \right)^2 ,\)
 where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
-By further constraining all $w_j$ to be positive and sum to 1 (convex combination) in the optimization, we can interpret these coefficients as ancestry proportions.
-This is similar to Summix \cite[]{arriaga2021summix}, although we introduce weights $w_j = 1 / \sqrt{f_j^{(0)} (1 - f_j^{(0)})}$ to account for more variability in more common variants.
-This optimization problem is a standard quadratic programming problem that can be solved using R package quadprog \cite[]{turlach2013quadprog}, and that we implement in function [TODO] in our R package bigsnpr \cite[]{prive2017efficient}.
+By further constraining all $\alpha_k$ to be positive and sum to 1 (convex combination) in the optimization, we can interpret these coefficients as ancestry proportions.
+This is similar to Summix \cite[]{arriaga2021summix}, with the difference that we introduce weights $w_j = 1 / \sqrt{f_j^{(0)} (1 - f_j^{(0)})}$ to account for more variability in more common variants.
+This optimization problem is a standard quadratic programming problem that can be solved using R package quadprog \cite[]{turlach2013quadprog}, and that we implement in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}.
 
 %% Around 320 words already %%
 
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{lrccccccccccccc}
+		\hline
+		Population & N & BBJ & body-fat & BrCa & CAD & covid & eczema & epilepsy & FinnGen & GERA & kidney & PAGE & PrCa & UKBB \\
+		\hline
+		Africa (East 1) & 193 & & 0.1 &&0.5 & 0.4 & 0.1 & & & & 1 & 0.8 &&0.1 \\
+		Africa (East 2) & 134 & &0.3& & & 0.1 & & & & 0.7 & 0.4 & & \\
+		Africa (South) & 362 & & 0.9 & & 0.5 & 0.7 & 0.1 & 0.1 & & 0.3 & 1.2 & 4.8 & 0.1 & 0.2 \\
+		Africa (West) & 655 & & & 0.2 & 1.2 & 2.1 & 0.1 & 0.4 & & 1 & & 14.1 & & 0.7\\
+		\hline
+		Ashkenazi & 1975 & & 1.3 & 0.6 & 1.4 & 0.5 & 1.1 & 2.6 & & 5.2 & 0.9 & 1 & 2.5 & 1 \\
+		Asia (East) & 504 & 4.3 & 2.6 & 0.8 & 3.2 & 0.4 & 0.2 & 2.9 & & 3.7 & 2.6 & 2.8 & 0.5 & 0.4 \\
+		Bangladesh & 223 & & 2.6 & 1.1 & 2.7 & 0.9 & & & & 0.2 & 0.8 & 1.3 & 0.8 & 0.5 \\
+		Caribbean & 660 & & 1.4 & 0.1 & 1.5 & 2.3 & 0.3 & 0.4 & & 1.3 & 0.5 & 14.5 & 0.2 & 0.9 \\
+		Europe (Central) & 559 & & 8 & 5.9 & 5.7 & 5.5 & 5.8 & 5.1 & 1.7 & 4.2 & 2.5 & 0.5 & 5.6 & \\
+		\hline
+		Europe (North East) & 259 & & 1.9 & 1.3 & 3.1 & 5.1 & 2.3 & 2 & 7 & 1.4 & 1 & 0.8 & 2.4 & 0.6 \\
+		Europe (North West) & 54556 & & 51.2 & 62.6 & 49.1 & 56.1 & 67.4 & 69.8 & & 58.1 & 66.6 & 6 & 58.8 & 92.8 \\
+		Europe (South East) & 344 & & 4.4 & 3 & 3.5 & 1.7 & 3.3 & 4.2 & & 3.7 & 1.4 & 0.6 & 3.2 & \\
+		\hline
+		Europe (South West) & 605 & & 2.2 & 3.4 & 1.7 && 2.5 & 4.2 & & 5.9 & 1 & 9.3 & 4.1 & 0.5 \\
+		Finland & 143 & & 7.5 & 8.3 & 5.8 & 12.7 & 10.2 & 4.7 & 83.2 & 1.1 & 4.1 & & 11.6 & \\
+		Japan & 240 & 95.7 & 2.5 & 0.2 & 1.6 & 0.5 & 0.6 &&0.4 & 1.6 & 11.9 & 8.4 & 0.2 & \\
+		Middle East & 509 & & 1.3 & 0.9 & 4 & 0.5 & 0.6 & 2.1 & & 2.3 & 0.3 & & 1.1 & 0.4 \\
+		Pakistan & 388 & & 2.7 & 0.4 & 6.2 & 1 & & & & & 0.1 & & & 1.2 \\
+		\hline
+		Philippines & 304 & & & & & 0.1 & & 0.4 & & 1.8 & 0.6 & 4 & & 0.1 \\
+		Scandinavia & 342 & & 6.1 & 9 & 4.4 & 6.6 & 4.6 & 0.8 & 7.6 & 2.7 & 1.7 & & 7.5 & \\
+		South America & 560 & & 1.1 & 1.1 & 1.7 & 2.3 & 0.6 & 0.3 & 0.1 & 5.5 & 0.5 & 30.1 & 0.8 & 0.2 \\
+		Sri Lanka & 365 & & 1.9 & 1 & 2.4 & 0.4 & & & & 0.1 & 0.6 & 0.7 & 0.5 & 0.4 \\
+		\end{tabular}
+\end{table}
+
+
 [TODO: CONCLU] Using allele frequencies derived from these groups, we are now able to effectively measure diversity from summary statistics of a genetic dataset.
 Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
-
-
-\begin{figure}[!htpb]
-	%\centerline{\includegraphics[width=0.7\textwidth]{timings.pdf}}
-	\caption{Computation times of \texttt{pcadapt} as a function of the number of PCs used. Black points represent timings with pcadapt v4, and the dashed blue line represents the timing with v3, which is independent of the number of PC used. \label{fig:timings}}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -1,0 +1,144 @@
+%% LyX 1.3 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english, 12pt]{article}
+\usepackage{times}
+%\usepackage{algorithm2e}
+\usepackage{url}
+\usepackage{bbm}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=1.5cm,rmargin=1.5cm}
+\usepackage{rotating}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{setspace}
+\usepackage{lineno}
+\usepackage{hyperref}
+\usepackage{bbm}
+\usepackage{makecell}
+
+%\renewcommand{\arraystretch}{1.8}
+
+%\usepackage{xr}
+%\externaldocument{SCT-supp}
+
+%\linenumbers
+%\doublespacing
+\onehalfspacing
+%\usepackage[authoryear]{natbib}
+\usepackage{natbib} \bibpunct{(}{)}{;}{author-year}{}{,}
+
+%Pour les rajouts
+\usepackage{color}
+\definecolor{trustcolor}{rgb}{0,0,1}
+
+\usepackage{dsfont}
+\usepackage[warn]{textcomp}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+
+\let\tabbeg\tabular
+\let\tabend\endtabular
+\renewenvironment{tabular}{\begin{adjustbox}{max width=0.9\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+%\newcommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\usepackage{babel}
+\makeatother
+
+
+\begin{document}
+
+
+\title{Supplementary Materials}
+
+\date{~ }
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{0}
+\renewcommand{\thesection}{S\arabic{section}}
+\setcounter{section}{0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Designing a reference of allele frequencies from the UK Biobank}
+
+\subsection{Identifying 26 ancestry groups from the UK Biobank}
+
+In this section, we use the first 16 principal components (PCs, \cite{prive2020efficient}) reported by the UK Biobank (Data-Field 22009, \cite{bycroft2018uk}), the self-reported ancestry (Data-Field 21000), and the country of birth (Data-Field 20115).
+For the individuals with a missing country of birth, we assign to them ``United Kingdom'' when they self-identify as ``British'' and ``Ireland'' when they self-identify as ``Irish''.
+Hereinafter, we use the Euclidean distance based on the first 16 PCs as we have shown to be an appropriate measure of the genetic distance between populations \cite[]{prive2021high}.
+The thresholds we use for this distance are based on carefully inspecting the self-reported ancestry and country of birth of individuals kept or excluded.
+
+Since the country of birth may poorly corresponds to the genetic ancestry that we are interested in, we perform some quality control on this information.
+Indeed, there are many individuals born in Africa with an Asian self-reported ancestry; we set their country of birth to missing. 
+We also set this information to missing for 1/ individuals born outside of Europe that are too close (log-distance lower than 4) to the UK; 2/ individuals born outside the UK within a log-distance of 2.5 to the UK; 3/ individuals born in Europe not within a log-distance of 5 to the UK.
+Finally, we keep only individuals born in South Africa with a log-distance to the UK larger than 6 (individuals of African ancestry). 
+After applying these filters, there are still many individuals born outside of the UK, including e.g.\ 3352 individuals from India, 1100 from Germany, 1036 from Nigeria, and 76 countries with at least 50 individuals.
+
+Then, to define a homogeneous group to be used as a reference population, we choose a country, compute the robust PC center of individuals born in this country using the geometric median \cite[]{prive2021high}, and choose to include in this group all individuals within a chosen log-distance to the center. The distance threshold is chosen based on the countries of birth included.
+For groups named after a country, we further restrict to individuals born in this country.
+We limit the ancestry groups to 2000 individuals in order not to have very uneven sample sizes; we pick at random among the United Kingdom and Ireland groups.
+We manually try different country centers and distance thresholds to cover as much of the worldwide populations as possible, without having overlapping groups.
+We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$. 
+Finally, we investigate individuals that are far away from any of the groups defined previously, and add a last group based on a center from India.
+
+[TODO: OUTPUT COUNTRIES FROM EACH GROUP]
+
+\subsection{Computing allele frequencies}
+
+We download the 1000 Genomes (1KG) Project data \cite[]{10002015global}. 
+Using PLINK \cite[]{chang2015second}, we remove 9 outlier individuals identified in \cite{martin2017human}, filter for founders, non-sex chromosomes, non-multiallelic variants with minor allele counts of at least 10.
+From the UK Biobank, we select imputed variants with a minor allele frequency larger than 0.001 and INFO score larger than 0.3, and match these variants with the ones from the filtered 1KG data described previously.
+We identify 12,373,666 genetic variants in common, for which we compute allele frequencies for each of the 26 1KG populations. 
+We also compute allele frequencies from the BGEN imputed data for each of the 26 UK Biobank groups we identified previously. 
+
+\subsection{Designing the final sets of allele frequencies}
+
+We select variants with an INFO score of at least 0.5 in all 26 UK Biobank ancestry groups. [TODO: NUMBER]
+Based on the remaining variants, we compute the overall fixation indices $F_{ST}$ between the UK Biobank groups and the 1KG populations.
+For each of the 1KG populations, we identify the closest ancestry group among those we defined, compute the $F_{ST}$ for all variants and scale them by dividing by the overall $F_{ST}$ with this group.
+For each variant, we then sum these scaled $F_{ST}$ (26 different ones corresponding to the UK Biobank ancestry groups), and identify and remove 18,344 variants with a large score.
+
+Finally, for the Finland, Bangladesh and Japan ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
+
+[TODO: REPORT FREQUENCIES? FST?]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[!htpb]
+	%\centerline{\includegraphics[width=0.75\textwidth]{compare-with-old.png}}
+	\caption{For one dataset with a large number of missing values, chi-square statistics from pcadapt v4.1.0 (y-axis) versus statistics from v3.0.4 (x-axis). Correlation between these statistics is of 99.76\%. \label{fig:corstats}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+
+\bibliographystyle{natbib}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
