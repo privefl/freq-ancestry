@@ -99,10 +99,39 @@ Then, to define a homogeneous group to be used as a reference population, we cho
 For groups named after a country, we further restrict to individuals born in this country.
 We limit the ancestry groups to 2000 individuals in order not to have very uneven sample sizes; we pick at random among the United Kingdom and Ireland groups.
 We manually try different country centers and distance thresholds to cover as much of the worldwide populations as possible, without having overlapping groups.
-We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$. 
+We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$ (clearly separated from the rest of individuals from the UKBB). 
 Finally, we investigate individuals that are far away from any of the groups defined previously, and add a last group based on a center from India.
 
-[TODO: OUTPUT COUNTRIES FROM EACH GROUP]
+For each of the 26 ancestry groups we define, we list the individuals' countries of birth (with at least 5 individuals, where ``NA'' means unknown):
+\begin{itemize}
+\item \textbf{Japan:~~} Japan: 240
+\item \textbf{Asia (East):~~} Hong Kong: 390 --- Malaysia: 179 --- NA: 122 --- China: 114 --- Singapore: 58 --- Vietnam: 33 --- Indonesia: 14 --- Taiwan: 10 --- Thailand: 8 --- Brunei: 6 --- Macau (Macao): 6
+\item \textbf{Philippines:~~} Philippines: 295
+\item \textbf{Africa (South):~~} Zimbabwe: 251 --- Uganda: 57 --- South Africa: 47 --- Zambia: 41 --- Malawi: 10 --- NA: 10 --- Tanzania: 6 --- Congo: 5
+\item \textbf{Africa (North):~~} Algeria: 69 --- Morocco: 62 --- Egypt: 54 --- Libya: 36 --- NA: 18 --- Tunisia: 13
+\item \textbf{Africa (East 1):~~} Somalia: 81 --- Ethiopia: 58 --- Sudan: 54 --- Eritrea: 46 --- NA: 27
+\item \textbf{Africa (East 2):~~} Kenya: 104 --- Uganda: 60 --- Burundi: 18 --- NA: 16 --- Sudan: 14 --- Tanzania: 14 --- Rwanda: 13 --- Nigeria: 8 --- Somalia: 7 --- Angola: 5 --- Zimbabwe: 5
+\item \textbf{Caribbean:~~} Caribbean: 327 --- NA: 310 --- Barbados: 73 --- The Guianas: 23 --- Antigua and Barbuda: 7
+\item \textbf{Africa (West):~~} Nigeria: 217 --- Ghana: 175 --- NA: 122 --- Sierra Leone: 98 --- Caribbean: 80 --- Ivory Coast: 7 --- Liberia: 7 --- The Guianas: 7 --- Togo: 6
+\item \textbf{Africa (Central):~~} Congo: 117 --- Cameroon: 42 --- Nigeria: 33 --- NA: 33 --- Angola: 21 --- Caribbean: 8 --- The Guianas: 7
+\item \textbf{Middle East:~~} Iraq: 240 --- Iran: 172 --- Turkey: 55 --- NA: 31 --- Syria: 11
+\item \textbf{United Kingdom:~~} United Kingdom: 2000
+\item \textbf{Ireland:~~} Ireland: 2000
+\item \textbf{Finland:~~} Finland: 143
+\item \textbf{Scandinavia:~~} Denmark: 142 --- Norway: 82 --- Sweden: 75 --- NA: 68 --- Germany: 25 --- Netherlands: 17 --- Iceland: 5
+\item \textbf{Europe (South West):~~} Spain: 279 --- Portugal: 198 --- NA: 91 --- France: 25 --- Gibraltar: 7
+\item \textbf{Italy:~~} Italy: 345
+\item \textbf{Europe (South East):~~} NA: 115 --- Romania: 47 --- Serbia/Montenegro: 41 --- Bosnia and Herzegovina: 34 --- Bulgaria: 33 --- Croatia: 28 --- Hungary: 17 --- Italy: 11 --- Macedonia: 8
+\item \textbf{Europe (Central):~~} NA: 196 --- Germany: 111 --- Czech Republic: 79 --- Poland: 50 --- Austria: 33 --- Hungary: 27 --- Slovakia: 25 --- Croatia: 10 --- Slovenia: 8 --- France: 7
+\item \textbf{Europe (North East):~~} Russia: 88 --- NA: 87 --- Poland: 72 --- Ukraine: 34 --- Latvia: 10 --- Germany: 7 --- Kazakhstan: 6 --- Lithuania: 5
+\item \textbf{Pakistan:~~} Pakistan: 400
+\item \textbf{Sri Lanka:~~} Sri Lanka: 372
+\item \textbf{Bangladesh:~~} Bangladesh: 223
+\item \textbf{South America:~~} Colombia: 173 --- Chile: 57 --- Mexico: 51 --- Peru: 50 --- Ecuador: 33 --- Bolivia: 21 --- NA: 20 --- Venezuela: 15 --- Brazil: 10 --- United Kingdom: 8 --- USA: 8 --- Argentina: 5
+\item \textbf{Ashkenazi:~~} United Kingdom: 1182 --- NA: 572 --- USA: 115 --- Israel: 27 --- Hungary: 12 --- Ireland: 8 --- France: 7 --- Canada: 6 --- Russia: 5
+\item \textbf{India:~~} NA: 258 --- India: 108 --- Sri Lanka: 16 --- Pakistan: 11
+\end{itemize}
+
 
 \subsection{Computing allele frequencies}
 
@@ -114,23 +143,49 @@ We also compute allele frequencies from the BGEN imputed data for each of the 26
 
 \subsection{Designing the final sets of allele frequencies}
 
-We select variants with an INFO score of at least 0.5 in all 26 UK Biobank ancestry groups. [TODO: NUMBER]
-Based on the remaining variants, we compute the overall fixation indices $F_{ST}$ between the UK Biobank groups and the 1KG populations.
+We select variants with an INFO score of at least 0.4 in all 26 UK Biobank ancestry groups.
+Based on the remaining 5,840,630 variants, we compute the overall fixation indices $F_{ST}$ between the UK Biobank groups and the 1KG populations (See the description of the 1KG populations at \url{https://www.coriell.org/1/NHGRI/Collections/1000-Genomes-Collections/1000-Genomes-Project}). 
+This enable us to check that the group we defined appropriate capture the ancestries they should.
+We report all $F_{ST}$ in a CSV file, and show only the lowest for each of the 26 ancestry groups we define here:
+\begin{itemize}
+\item \textbf{Japan:~~} JPT: 0.00033 --- CHB: 0.007 --- CHS: 0.0089 --- Asia (East): 0.01 --- KHV: 0.014 --- CDX: 0.017 --- Philippines: 0.021
+\item \textbf{Asia (East):~~} CHS: 0.0009 --- KHV: 0.0021 --- CHB: 0.0029 --- CDX: 0.0034 --- Philippines: 0.01 --- Japan: 0.01 --- JPT: 0.011
+\item \textbf{Philippines:~~} Asia (East): 0.01 --- KHV: 0.01 --- CDX: 0.011 --- CHS: 0.012 --- CHB: 0.015 --- Japan: 0.021 --- JPT: 0.021
+\item \textbf{Africa (South):~~} Africa (Central): 0.0017 --- LWK: 0.0035 --- Caribbean: 0.0043 --- Africa (West): 0.0044 --- Africa (East 2): 0.005 --- YRI: 0.005 --- ESN: 0.0055
+\item \textbf{Africa (North):~~} PUR: 0.01 --- Middle East: 0.01 --- Italy: 0.01 --- Europe (South West): 0.011 --- TSI: 0.012 --- IBS: 0.012 --- Ashkenazi: 0.012
+\item \textbf{Africa (East 1):~~} Africa (North): 0.018 --- ASW: 0.027 --- Africa (East 2): 0.028 --- PUR: 0.029 --- Middle East: 0.036 --- ACB: 0.037 --- CLM: 0.039
+\item \textbf{Africa (East 2):~~} LWK: 0.0033 --- Caribbean: 0.0045 --- ASW: 0.0048 --- ACB: 0.0048 --- Africa (South): 0.005 --- Africa (Central): 0.0056 --- Africa (West): 0.0074
+\item \textbf{Caribbean:~~} ACB: 0.00048 --- Africa (West): 0.0011 --- YRI: 0.0022 --- Africa (Central): 0.0023 --- ESN: 0.0028 --- ASW: 0.003 --- MSL: 0.0042
+\item \textbf{Africa (West):~~} YRI: 0.00061 --- Caribbean: 0.0011 --- ESN: 0.0015 --- Africa (Central): 0.0019 --- ACB: 0.0023 --- MSL: 0.0028 --- Africa (South): 0.0044
+\item \textbf{Africa (Central):~~} Africa (South): 0.0017 --- Africa (West): 0.0019 --- Caribbean: 0.0023 --- YRI: 0.0024 --- ESN: 0.0028 --- ACB: 0.0036 --- LWK: 0.0045
+\item \textbf{Middle East:~~} Italy: 0.0043 --- TSI: 0.0059 --- Europe (South East): 0.007 --- Ashkenazi: 0.007 --- Europe (South West): 0.008 --- India: 0.0088 --- IBS: 0.0089
+\item \textbf{United Kingdom:~~} Scandinavia: 0.00043 --- Ireland: 0.00069 --- CEU: 0.001 --- GBR: 0.0011 --- Europe (Central): 0.0012 --- Europe (South East): 0.0021 --- Europe (South West): 0.0023
+\item \textbf{Ireland:~~} United Kingdom: 0.00069 --- Scandinavia: 0.0015 --- GBR: 0.0017 --- CEU: 0.0018 --- Europe (Central): 0.0023 --- Europe (South West): 0.0033 --- Europe (South East): 0.0033
+\item \textbf{Finland:~~} FIN: 0.00041 --- Europe (North East): 0.0052 --- Scandinavia: 0.0054 --- Europe (Central): 0.0056 --- United Kingdom: 0.0066 --- CEU: 0.0067 --- GBR: 0.0072
+\item \textbf{Scandinavia:~~} United Kingdom: 0.00043 --- Europe (Central): 0.0012 --- CEU: 0.0013 --- Ireland: 0.0015 --- GBR: 0.0015 --- Europe (South East): 0.0026 --- Europe (North East): 0.0027
+\item \textbf{Europe (South West):~~} IBS: 0.00079 --- Italy: 0.0014 --- Europe (South East): 0.002 --- TSI: 0.0021 --- United Kingdom: 0.0023 --- Europe (Central): 0.003 --- CEU: 0.003
+\item \textbf{Italy:~~} TSI: 0.0011 --- Europe (South West): 0.0014 --- Europe (South East): 0.0017 --- IBS: 0.0023 --- Europe (Central): 0.004 --- United Kingdom: 0.0041 --- Middle East: 0.0043
+\item \textbf{Europe (South East):~~} Europe (Central): 0.00075 --- Italy: 0.0017 --- Europe (North East): 0.0017 --- Europe (South West): 0.002 --- United Kingdom: 0.0021 --- Scandinavia: 0.0026 --- TSI: 0.0027
+\item \textbf{Europe (Central):~~} Europe (North East): 0.00053 --- Europe (South East): 0.00075 --- Scandinavia: 0.0012 --- United Kingdom: 0.0012 --- CEU: 0.0019 --- GBR: 0.0023 --- Ireland: 0.0023
+\item \textbf{Europe (North East):~~} Europe (Central): 0.00053 --- Europe (South East): 0.0017 --- Scandinavia: 0.0027 --- United Kingdom: 0.003 --- CEU: 0.0036 --- Ireland: 0.0039 --- GBR: 0.0039
+\item \textbf{Pakistan:~~} PJL: 0.0026 --- India: 0.0041 --- GIH: 0.0053 --- Bangladesh: 0.0059 --- Sri Lanka: 0.0065 --- ITU: 0.0068 --- STU: 0.0074
+\item \textbf{Sri Lanka:~~} STU: 0.00034 --- ITU: 0.0015 --- Bangladesh: 0.0023 --- BEB: 0.0025 --- PJL: 0.0037 --- GIH: 0.0043 --- Pakistan: 0.0065
+\item \textbf{Bangladesh:~~} BEB: 0.00068 --- Sri Lanka: 0.0023 --- STU: 0.0028 --- ITU: 0.003 --- PJL: 0.0037 --- GIH: 0.0044 --- Pakistan: 0.0059
+\item \textbf{South America:~~} MXL: 0.0023 --- CLM: 0.0053 --- PUR: 0.014 --- PEL: 0.019 --- India: 0.022 --- Pakistan: 0.027 --- Europe (South East): 0.029
+\item \textbf{Ashkenazi:~~} Italy: 0.0051 --- TSI: 0.0064 --- Europe (South West): 0.0069 --- Middle East: 0.007 --- Europe (South East): 0.0072 --- IBS: 0.008 --- Europe (Central): 0.0097
+\item \textbf{India:~~} Pakistan: 0.0041 --- PJL: 0.007 --- Middle East: 0.0088 --- Europe (South East): 0.0091 --- Bangladesh: 0.0095 --- Europe (Central): 0.0096 --- United Kingdom: 0.0097
+\end{itemize}
+
 For each of the 1KG populations, we identify the closest ancestry group among those we defined, compute the $F_{ST}$ for all variants and scale them by dividing by the overall $F_{ST}$ with this group.
 For each variant, we then sum these scaled $F_{ST}$ (26 different ones corresponding to the UK Biobank ancestry groups), and identify and remove 18,344 variants with a large score.
+This enable us to identify variants with possible errors in the UK Biobank.
 
 Finally, for the Finland, Bangladesh and Japan ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
+Since some ancestry groups are genetically very close to each other (very low $F_{ST}$), we merge them by averaging their allele frequencies. Thus we merge the ``Irish'', ``United Kingdom'' and ``Scandinavia'' groups  to form a new Northwestern European group. We also merge the groups from Central, North-East and South-East Europe to form a new Eastern European group.
+We remove the ``India'' group since the $F_{ST}$ with other populations seem to place this group north of India, instead of in the middle of India, as we sought.
+We also remove the ``Caribbean'' group since it is an admixed population (estimated by our method to be of 92.2\% African, 6.2\% Northwestern European and 1\% Southwestern European ancestries, see Table 1 of main text).
 
-[TODO: REPORT FREQUENCIES? FST?]
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{figure}[!htpb]
-	%\centerline{\includegraphics[width=0.75\textwidth]{compare-with-old.png}}
-	\caption{For one dataset with a large number of missing values, chi-square statistics from pcadapt v4.1.0 (y-axis) versus statistics from v3.0.4 (x-axis). Correlation between these statistics is of 99.76\%. \label{fig:corstats}}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This results in the set of 5,816,590 variants for 20 populations, which we provide for download, and that we use to estimate ancestry proportions in GWAS summary statistics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

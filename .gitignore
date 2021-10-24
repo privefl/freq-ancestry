@@ -13,3 +13,5 @@ pres/
 *.aux
 *.tex.bak
 natbib.*
+tmp-data/
+ancestry-proportions.tex
