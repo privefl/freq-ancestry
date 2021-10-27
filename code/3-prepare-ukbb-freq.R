@@ -15,7 +15,7 @@ grid <- purrr::map_dfr(1:22, function(chr) {
 })
 nrow(grid) # 257 parts
 
-all_eid <- readRDS("tmp-data/info-UKBB.rds")$eid
+all_eid <- readRDS("tmp-data/info-UKBB2.rds")$eid
 eid_sample <- bigreadr::fread2("UKBB/ukb58024_imp_chr1_v3_s487296.sample")$ID_1[-1]
 all_ind <- lapply(readRDS("data/list_ind_pop.rds"), function(ind) {
   match(all_eid[ind], eid_sample)

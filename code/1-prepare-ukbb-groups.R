@@ -81,8 +81,6 @@ qplot(log(dist_to_UK[country %in% POP]), geom = "density",
   geom_vline(xintercept = 4, linetype = 3) +
   # geom_vline(xintercept = c(2.5, 5), linetype = 3) +
   theme(legend.position = c(0.2, 0.7))
-# ggsave("figures/noeur-dist-uk.pdf", width = 8, height = 6, scale = 0.8)
-# ggsave("figures/eur-dist-uk.pdf", width = 8, height = 6, scale = 0.8)
 
 # Probably European:
 country[log(dist_to_UK) < 4 & continent != "Europe"] <- NA

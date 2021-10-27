@@ -32,33 +32,6 @@ str(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/UKBB.rds")
 
 
-## Caribbean defined previously
-
-sumstats <- cbind.data.frame(
-  readRDS("tmp-data/info_af_1kg.rds")[1:5],
-  readRDS("tmp-data/info_af_ukbb.rds")$Caribbean
-) %>%
-  filter(info > 0.4)
-
-str(res <- snp_match_ancestry(sumstats))
-saveRDS(res, "res_ancestry/caribbean.rds")
-
-
-
-## AMR in 1KG
-
-obj.bed <- bed(download_1000G("tmp-data"))
-fam2 <- bigreadr::fread2(paste0(obj.bed$prefix, ".fam2"))
-ind_row <- which(fam2$`Super Population` == "AMR")
-
-af <- bed_MAF(obj.bed, ind_row, ncores = nb_cores())$af
-sumstats <- dplyr::transmute(obj.bed$map, chr = chromosome, pos = physical.pos,
-                             a1 = allele1, a0 = allele2, freq = af)
-
-str(res <- snp_match_ancestry(sumstats))
-saveRDS(res, "res_ancestry/AMR.rds")
-
-
 ## T2D from Biobank Japan
 
 # zip <- runonce::download_file(
@@ -234,7 +207,7 @@ sumstats <- fread2(
   col.names = c("chr", "pos", "a0", "a1", "freq"),
 )
 
-str(res <- snp_match_ancestry(sumstats))  # only 0.95 correlation
+str(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/height-peru.rds")
 
 
@@ -310,7 +283,22 @@ all_coef <- setNames(purrr::map_dfc(files, ~ readRDS(.x)$coef),
 
 library(dplyr)
 pop_names <- names(readRDS("res_ancestry/UKBB.rds")$coef)
-pop_N <- lengths(readRDS("data/list_ind_pop.rds"))
+pop_N <- c(lengths(readRDS("data/list_ind_pop.rds")), "British-Irish Isles" = 4000)
+pop_N["Africa (East)"] <- pop_N["Africa (East 1)"]
 csv <- bind_cols(Population = pop_names, N = pop_N[pop_names], all_coef) %>%
   print(n = Inf, width = Inf) %>%
   bigreadr::fwrite2("all_prop.csv")
+
+library(dplyr)
+df <- bigreadr::fread2("all_prop.csv") %>%
+  as_tibble() %>%
+  select(1:2, BBJ, FinnGen, `height-peru`, arabic, t2d_africa, UKBB, GERA, PAGE,
+         BrCa, PrCa, CAD, everything()) %>%
+  mutate_at(-(1:2), ~ round(100 * ., 1)) %>%
+  print(n = Inf, width = Inf)
+
+df %>%
+  mutate_at(-(1:2), ~ ifelse(. == 0, "", as.character(.))) %>%
+  xtable::xtable() %>%
+  print(caption.placement = "top", hline.after = c(-1, 0, 4, 5, 10, 11, 14, 17),
+        include.rownames = FALSE, file = "ancestry-proportions.tex")

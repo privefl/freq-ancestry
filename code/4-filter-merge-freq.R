@@ -56,7 +56,7 @@ foreach(i = 2:npop, .export = "all_fst") %:%
 all_fst <- all_fst[]
 colnames(all_fst) <- rownames(all_fst) <- names(all_N)
 # write.table(all_fst, "all_fst.csv", sep = ",", quote = FALSE)
-# read.csv("all_fst.csv", check.names = FALSE)
+# all_fst <- as.matrix(read.csv("all_fst.csv", check.names = FALSE))
 
 print_fst <- function(pop, nb = 7) {
   smallest_fst <- sort(all_fst[, pop])[1:nb + 1L]
@@ -119,13 +119,16 @@ X <- as.data.frame(X_ukbb[ind, ])
 X[, "Finland"] <- (143 * X[, "Finland"] + 99 * X_1kg[ind, "FIN"]) / (143 + 99)
 X[, "Bangladesh"] <- (223 * X[, "Bangladesh"] + 86 * X_1kg[ind, "BEB"]) / (223 + 86)
 X[, "Japan"] <- (240 * X[, "Japan"] + 104 * X_1kg[ind, "JPT"]) / (240 + 104)
+X[, "South America"] <- (473 * X[, "South America"] + 84 * X_1kg[ind, "PEL"]) / (473 + 84)
 # Merge very close ancestry groups (based on Fst above)
-X[, "Europe (North West)"] <- (X$Ireland + X$`United Kingdom` + X$Scandinavia) / 3
-X[, "Europe (East)"] <- (X$`Europe (North East)` + X$`Europe (Central)` + X$`Europe (South East)`) / 3
+X[, "British-Irish Isles"] <- (X$Ireland + X$`United Kingdom`) / 2
 # Remove India (not totally expected Fst) and Caribbean (too close to West Africa and admixed)
-X2 <- dplyr::select(X, -c(Ireland, `United Kingdom`, Scandinavia, `Europe (North East)`,
-                          `Europe (Central)`, `Europe (South East)`, India, Caribbean))
+X2 <- dplyr::select(X, -c(Ireland, `United Kingdom`, `Africa (East 2)`, Caribbean, `Africa (Central)`,
+                          Scandinavia, Italy,`Europe (South East)`, `Europe (Central)`, India),
+                    `Africa (East)` = `Africa (East 1)`)
 
-ord <- hclust(as.dist(1 - cor(X2)^2), method = "ward.D2")$order
+ord <- c("Africa (West)", "Africa (South)", "Africa (East)", "Africa (North)", "Middle East",
+         "Ashkenazi", "Europe (North East)", "Finland", "British-Irish Isles", "Europe (South West)",
+         "South America", "Japan", "Asia (East)", "Philippines", "Bangladesh", "Sri Lanka", "Pakistan")
 
 # saveRDS(cbind.data.frame(data_1kg[ind_keep[ind], 1:5], X2[ord]), "data/all_freq.rds")

@@ -8,7 +8,7 @@ pres/
 *.dvi
 *.log
 *.out
-*.pdf
+paper-ancestry-prop*.pdf
 *.synctex.gz
 *.aux
 *.tex.bak
