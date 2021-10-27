@@ -93,14 +93,14 @@ Since the country of birth may poorly corresponds to the genetic ancestry that w
 Indeed, there are many individuals born in Africa with an Asian self-reported ancestry; we set their country of birth to missing. 
 We also set this information to missing for 1/ individuals born outside of Europe that are too close (log-distance lower than 4) to the UK; 2/ individuals born outside the UK within a log-distance of 2.5 to the UK; 3/ individuals born in Europe not within a log-distance of 5 to the UK.
 Finally, we keep only individuals born in South Africa with a log-distance to the UK larger than 6 (individuals of African ancestry). 
-After applying these filters, there are still many individuals born outside of the UK, including e.g.\ 3352 individuals from India, 1100 from Germany, 1036 from Nigeria, and 76 countries with at least 50 individuals.
+After applying these filters, there are still many individuals born outside of the UK and Ireland, including e.g.\ 3352 individuals from India, 1100 from Germany, 1036 from Nigeria, and 76 countries with at least 50 individuals.
 
-Then, to define a homogeneous group to be used as a reference population, we choose a country, compute the robust PC center of individuals born in this country using the geometric median \cite[]{prive2021high}, and choose to include in this group all individuals within a chosen log-distance to the center. The distance threshold is chosen based on the countries of birth included.
+Then, to define a homogeneous group to be used as a reference population, we choose a country, compute the robust PC center of individuals born in this country (using the geometric median, \cite{prive2021high}), and choose to include in this group all individuals within a chosen log-distance to the center. The distance threshold is chosen based on the countries of birth included.
 For groups named after a country, we further restrict to individuals born in this country.
 We limit the ancestry groups to 2000 individuals in order not to have very uneven sample sizes; we pick at random among the United Kingdom and Ireland groups.
 We manually try different country centers and distance thresholds to cover as much of the worldwide populations as possible, without having overlapping groups.
-We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$ (clearly separated from the rest of individuals from the UKBB). 
-Finally, we investigate individuals that are far away from any of the groups defined previously, and add a last group based on a center from India.
+We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$ (clearly separated from the rest of individuals from the UK Biobank). 
+Finally, we investigate individuals that are far away from any of the groups defined previously, and add a last group based on a center from remaining individuals born in India.
 
 For each of the 26 ancestry groups we define, we list the individuals' countries of birth (with at least 5 individuals, where ``NA'' means unknown):
 \begin{itemize}
@@ -141,11 +141,10 @@ From the UK Biobank, we select imputed variants with a minor allele frequency la
 We identify 12,373,666 genetic variants in common, for which we compute allele frequencies for each of the 26 1KG populations. 
 We also compute allele frequencies from the BGEN imputed data for each of the 26 UK Biobank groups we identified previously. 
 
-\subsection{Designing the final sets of allele frequencies}
+\subsection{Designing the final set of variants}
 
 We select variants with an INFO score of at least 0.4 in all 26 UK Biobank ancestry groups.
-Based on the remaining 5,840,630 variants, we compute the overall fixation indices $F_{ST}$ between the UK Biobank groups and the 1KG populations (See the description of the 1KG populations at \url{https://www.coriell.org/1/NHGRI/Collections/1000-Genomes-Collections/1000-Genomes-Project}). 
-This enable us to check that the group we defined appropriate capture the ancestries they should.
+Based on the remaining 5,840,630 variants, we compute the overall fixation indices $F_{ST}$ between the UK Biobank groups and the 1KG populations (See the description of the 1KG populations at \url{https://www.coriell.org/1/NHGRI/Collections/1000-Genomes-Collections/1000-Genomes-Project}).
 We report all $F_{ST}$ at \url{https://github.com/privefl/freq-ancestry/blob/main/all_fst.csv}, and show only the lowest for each of the 26 ancestry groups we define here:
 \begin{itemize}
 \item \textbf{Japan:~~} JPT: 0.00033 --- CHB: 0.007 --- CHS: 0.0089 --- Asia (East): 0.01 --- KHV: 0.014 --- CDX: 0.017 --- Philippines: 0.021
@@ -177,15 +176,25 @@ We report all $F_{ST}$ at \url{https://github.com/privefl/freq-ancestry/blob/mai
 \end{itemize}
 
 For each of the 1KG populations, we identify the closest ancestry group among those we defined, compute the $F_{ST}$ for all variants and scale them by dividing by the overall $F_{ST}$ with this group.
-For each variant, we then sum these scaled $F_{ST}$ (26 different ones corresponding to the UK Biobank ancestry groups), and identify and remove 18,344 variants with a large score.
+For each variant, we then sum these scaled $F_{ST}$ (one for each 1KG population), and identify and remove 24,040 variants with a large score.
 This enable us to identify variants with possible errors in the UK Biobank.
 
-Finally, for the Finland, Bangladesh and Japan ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
-Since some ancestry groups are genetically very close to each other (very low $F_{ST}$), we merge them by averaging their allele frequencies. Thus we merge the ``Irish'', ``United Kingdom'' and ``Scandinavia'' groups  to form a new Northwestern European group. We also merge the groups from Central, North-East and South-East Europe to form a new Eastern European group.
-We remove the ``India'' group since the $F_{ST}$ with other populations seem to place this group north of India, instead of in the middle of India, as we sought.
-We also remove the ``Caribbean'' group since it is an admixed population (estimated by our method to be of 92.2\% African, 6.2\% Northwestern European and 1\% Southwestern European ancestries, see Table 1 of main text).
+\subsection{Designing the final set of reference populations}
 
-This results in the set of 5,816,590 variants for 20 populations, which we provide for download, and that we use to estimate ancestry proportions in GWAS summary statistics.
+The 26 ancestry groups defined previously comprise a total of 15,645 individuals from the UK Biobank. We combine them with 2490 individuals from the 26 populations of the 1KG data, and use a pruned set of 252,893 high-quality genotyped variants to run an admixture analysis (K = 15) using function \texttt{snmf} from R package LEA \cite[]{frichot2014fast,gain2020lea}.
+Ancestry proportions for the 52 groups are represented in Figure \ref{fig:admixture}.
+We can see that we have defined very homogeneous groups; however based on these results and previous $F_{ST}$, we decide to slightly modify these groups.
+First, for the Finland, Bangladesh and Japan ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
+We do the same for ``South America'' and ``PEL'' in order to capture slightly more of what is probably an Amerindian ancestral component (in blue).
+Second, we merge the ``Irish'' and ``United Kingdom'' groups as a new ``British-Irish Isles'' group.
+Third, we remove some groups that could be retrieved from combining two or three other groups: ``Africa (East 2)'', ``Caribbean'', ``Africa (Central)'', ``Scandinavia'', ``Italy'', ``Europe (South East)'', ``Europe (Central)'', and ``India''.
+
+\begin{figure}[hp]
+	\centerline{\includegraphics[width=0.9\textwidth]{admixture}}
+	\caption{Admixture coefficients (for K = 15 ancestral populations) for the individuals from the 26 ancestry groups we defined previously from the UK Biobank, as well as the 26 1KG populations. \label{fig:admixture}}
+\end{figure}
+
+This results in the set of 5,816,590 variants for 17 ancestry groups, which we provide for download and use to estimate ancestry proportions in GWAS summary statistics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

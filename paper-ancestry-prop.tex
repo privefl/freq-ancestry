@@ -65,7 +65,7 @@
 \begin{document}
 
 
-\title{Using the UK Biobank as a global reference: application to measuring ancestry diversity from GWAS summary statistics}
+\title{Using the UK Biobank as a global reference of worldwide populations: application to measuring ancestry diversity from GWAS summary statistics}
 \author{Florian Priv\'e$^{\text{1}}$}
 
 \date{~ }
@@ -82,7 +82,7 @@
 
 \abstract{
 	The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
-	Within this dataset, we carefully define 20 distinct ancestry groups from all four corners of the world. 
+	Within this dataset, we carefully define 17 distinct ancestry groups from all four corners of the world. 
 	Using allele frequencies derived from these global reference groups, we are now able to effectively measure diversity from summary statistics of any genetic dataset.
 	Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
 }
@@ -94,13 +94,13 @@
 \clearpage
 
 Several projects have focused on providing genetic data from diverse populations, such as the HapMap project, the 1000 genomes project, the Simons genome diversity project, and the human genome diversity project \cite[]{international2010integrating,10002015global,mallick2016simons,bergstrom2020insights}.
-However, these datasets do not contain many individuals per population and therefore are large enough to provide accurate allele frequency estimates for diverse populations.
+However, these datasets do not contain many individuals per population and therefore are not large enough to provide accurate allele frequency estimates for diverse worldwide populations.
 The UK Biobank project is a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom.
 Despite being a cohort from the UK, this dataset is so large that it includes individuals that were born in all four corners of the world. 
-Here we carefully use information on self-reported ancestry, country of birth, and genetic similarity to define 20 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
-This includes six groups with genetic ancestries from Europe, six from Africa, three from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:table1}).
+Here we carefully use information on self-reported ancestry, country of birth, and genetic similarity to define 17 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
+This includes five groups with genetic ancestries from Europe, four from Africa, three from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:table1}).
 The detailed procedure used to define these groups is presented in the Supplementary Materials.
-We then provide reference allele frequencies for 5,816,590 genetic variants across these 20 diverse ancestry groups.
+We then provide reference allele frequencies for 5,816,590 genetic variants across these 17 diverse ancestry groups.
 
 
 % latex table generated in R 3.6.1 by xtable 1.8-4 package
@@ -138,10 +138,10 @@ We then provide reference allele frequencies for 5,816,590 genetic variants acro
 		Japan & 344 & 96.1 & 0.5 & 5.3 &  &  &  & 1.9 & 8.7 &  &  & 0.3 & 0.3 & 2.2 & 3.1 & 0.5 & 0.6 &  & 26 \\ 
 		\hline
 	\end{tabular}
-	\caption{Reference population with their size (N) and corresponding ancestry proportions in other GWAS datasets. Citations for the allele frequencies used: the Biobank Japan (BBJ, \cite{sakaue2021cross}), FinnGen (\url{https://r5.finngen.fi/}), GWAS in Peruvians \cite[]{asgari2020positively}, GWAS in Qataris \cite[]{thareja2021whole}, GWAS in Sub-Saharan Africans (Africa, \cite{chen2019genome}), the UK Biobank (UKBB, \cite{bycroft2018uk}), GERA \cite[]{hoffmann2018large}, PAGE \cite[]{wojcik2019genetic}, admixed Americans in the 1000 Genomes data (AMR, \cite{10002015global}), Caribbean ancestry group in the UKBB (Supplementary Materials), breast cancer (BrCa, \cite{michailidou2017association}), prostate cancer (PrCa, \cite{schumacher2018association}), coronary artery disease (CAD, \cite{nikpay2015comprehensive}), body fat percentage \cite[]{lu2016new}, COVID-19 \cite[]{ganna2021mapping}, eczema \cite[]{paternoster2015multi}, epilepsy \cite[]{consortium2018genome}, and serum urate \cite[]{tin2019target}. Several of them have been downloaded through the NHGRI-EBI GWAS Catalog \cite[]{macarthur2017new}. \label{tab:table1}}
+	\caption{Reference population with their size (N) and corresponding ancestry proportions in several GWAS datasets. Citations for the allele frequencies used: the Biobank Japan (BBJ, \cite{sakaue2021cross}), FinnGen (\url{https://r5.finngen.fi/}), GWAS in Peruvians \cite[]{asgari2020positively}, GWAS in Qataris \cite[]{thareja2021whole}, GWAS in Sub-Saharan Africans (Africa, \cite{chen2019genome}), the UK Biobank (UKBB, \cite{bycroft2018uk}), GERA \cite[]{hoffmann2018large}, PAGE \cite[]{wojcik2019genetic}, breast cancer (BrCa, \cite{michailidou2017association}), prostate cancer (PrCa, \cite{schumacher2018association}), coronary artery disease (CAD, \cite{nikpay2015comprehensive}), body fat percentage \cite[]{lu2016new}, COVID-19 \cite[]{ganna2021mapping}, eczema \cite[]{paternoster2015multi}, epilepsy \cite[]{consortium2018genome}, and serum urate \cite[]{tin2019target}. Several of them have been downloaded through the NHGRI-EBI GWAS Catalog \cite[]{macarthur2017new}. \label{tab:table1}}
 \end{table}
 
-Then, as a use-case for the new reference set of allele frequencies we provide, we propose to estimate global ancestry proportions from a cohort based on its allele frequencies only.
+Then, as a use-case for the new reference set of allele frequencies we provide, we propose to estimate global ancestry proportions from a cohort based on its allele frequencies only (i.e.\ summary statistics).
 We propose to find the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) which minimize the following problem:
 \(\sum_{j=1}^M \left(w_j  f_j^{(0)} - \sum_{k=1}^K \alpha_k w_j f_j^{(k)} \right)^2 ,\)
 where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
@@ -149,20 +149,21 @@ This is similar to Summix \cite[]{arriaga2021summix}, except for two differences
 Second, and most importantly, we use the new reference set of allele frequencies we present here (instead of the five continental 1000 Genomes populations) for measuring genetic diversity with more precision.
 This optimization problem is a standard quadratic programming problem that can be solved using R package quadprog \cite[]{turlach2013quadprog}, and that we implement in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}.
 
-We download several GWAS summary statistics which reports the allele frequencies and apply this method to both validate our new reference set we provide and show one of its potential use.
-We first apply function \texttt{snp\_ancestry\_summary} to homogeneous samples as an empirically validation.
-When applied to the Biobank Japan (Japanese cohort), FinnGen (Finnish), a Peruvian cohort, a Qatari cohort and Sub-Saharan African cohort, our function using the new reference set we provide clearly estimate ancestry proportions matching expectations.
-When comparing our estimates with reported ancestries, for example PAGE is composed of 44.6\% Hispanic-Latinos, 34.7\% African-Americans, 9.4\% Asians, 7.9\% Native Hawaiians and 3.4\% of some other ancestries, whereas our estimates are of 27.7\% South American, 20.2\% European, 34.8\% African, 2.1\% South Asian, 11.3\% East Asian, 3.9\% Filipino.
-GWAS summary statistics from either European ancestries or trans-ethnic ancestries all have a substantial proportion estimated from European ancestry groups, while ancestries from other continents are still largely underrepresented. 
+We download several GWAS summary statistics which reports allele frequencies and apply this method to both validate our new reference set we provide and show one of its potential use.
+We first apply function \texttt{snp\_ancestry\_summary} to more homogeneous samples as an empirically validation.
+When applying this function (using the new reference set we provide) to the Biobank Japan (Japanese cohort), FinnGen (Finnish), a Peruvian cohort, a Qatari cohort and Sub-Saharan African cohort, the ancestry proportions estimates obtained match expectations (Table \ref{tab:table1}).
+When comparing our estimates with reported ancestries, for example PAGE is composed of 44.6\% Hispanic-Latinos, 34.7\% African-Americans, 9.4\% Asians, 7.9\% Native Hawaiians and 3.4\% of some other ancestries (self-reported), whereas our estimates are of 27.7\% South American, 20.2\% European, 34.8\% African, 2.1\% South Asian, 11.3\% East Asian, and 3.9\% Filipino [TODO: CHANGE].
+GWAS summary statistics from either European ancestries or trans-ethnic ancestries all have a substantial proportion estimated from European ancestry groups, while ancestries from other continents are still largely underrepresented (Table \ref{tab:table1}). 
 
 Here we provide an unprecedentedly large and diverse reference set of allele frequencies using the UK Biobank.
 We then show how to effectively measure diversity from GWAS summary statistics using this new set of reference allele frequencies.
 Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
-Our work has limitations though. First, although we managed to define ancestry groups with more than 240 individuals, it seems that they are not enough to recover for our method to recover 100\% of one ancestry (e.g.\ the case for the FinnGen and Biobank Japan cohorts which are likely very homogenous). In this case, we also capture a small proportion from nearby ancestry groups. 
-Second, it is not fully clear whether we can capture any ancestry, e.g. Native Hawaiians in the PAGE study; it seems that they are partly captured by the ``Philippines'' ancestry group we define.
-Third, with the 20 ancestry groups we defined, we think we are capturing a large amount of the diversity in both Europe and Africa, but we may still be missing more fine-grained diversity in the genetic ancestry  in both South Asia and South America.
-Fourth, when we use the frequencies reported in the GWAS summary statistics, it is not clear whether they were recomputed from all individuals (e.g.\ before performing some quality control and filtering), and for meta-analyses of binary traits, whether they were computed as weighted average using total sample sizes or effective sample sizes.
-Anyway, we envision that the new set of reference allele frequencies we provide will have many applications.
+Our work has limitations though. 
+First, although we managed to define ancestry groups with more than 240 individuals, it seems that these groups are still not large enough for the ancestry deconvolution method to recover 100\% of one ancestry (e.g.\ the case for the FinnGen and Biobank Japan cohorts which are likely very homogenous). In this case, we also capture a small proportion from nearby ancestry groups. 
+Second, it is not fully clear whether we can capture any ancestry, e.g.\ Native Hawaiians in the PAGE study; it seems that they are partly captured by the ``Philippines'' ancestry group we define.
+Third, with the 17 ancestry groups we defined, we think we are capturing a large proportion of the genetic diversity in both Europe and Africa, but we may still be missing more fine-grained diversity in both South Asia and South America, as well as in some isolated populations.
+Fourth, when we use the frequencies reported in the GWAS summary statistics, it is not clear whether they were recomputed from all individuals (e.g.\ before performing any quality control and filtering), and for meta-analyses of binary traits, whether they were computed as weighted average using total sample sizes or effective sample sizes.
+Anyway, despite these limitations, we envision that the new set of reference allele frequencies we provide will have many useful applications.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -171,7 +172,7 @@ Anyway, we envision that the new set of reference allele frequencies we provide 
 \section*{Software and code availability}
 
 The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}).
-The set of reference allele frequencies for 5,816,590 genetic variants across 20 diverse ancestry groups we create here can be downloaded from \url{https://figshare.com/ndownloader/files/31163785}.
+The set of reference allele frequencies for 5,816,590 genetic variants across 17 diverse ancestry groups we create here can be downloaded from \url{https://figshare.com/ndownloader/files/31163785} [TODO: REUPLOAD AND VERIFY].
 All code used for this paper is available at \url{https://github.com/privefl/freq-ancestry/tree/main/code}. 
 We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
 
