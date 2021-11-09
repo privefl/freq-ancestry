@@ -1,0 +1,181 @@
+---
+title: "Group meeting"
+output:
+  xaringan::moon_reader:
+    seal: false
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, width = 70)
+knitr::opts_chunk$set(fig.align = 'center', dev = "svg", out.width = "70%",
+                      echo = FALSE, comment = "", fig.width = 5, global.par = TRUE)
+```
+
+class: title-slide center middle inverse
+
+<br>
+
+# Global ancestry proportions and frequencies from the UK Biobank
+
+<br>
+
+## Florian Privé
+
+---
+
+## Goal
+
+<br>
+
+#### Infer ancestry proportions using allele frequencies only
+
+---
+
+## Main challenges
+
+<br>
+
+- Need some (precise) frequencies from many global populations
+    
+--
+    
+- Need a method to infer ancestry proportions.    
+    We can minimize the following problem, subject to $w \ge 0$ and $\sum_k w_k = 1$ (convex combination):
+    
+    $$\min_w \sum_{j=1}^M \left( f_j^{(0)} - \sum_{k=1}^K f_j^{(k)} w_k \right)^2 ~,$$
+    where $M$ is the number of variants, $K$ the number of populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the global population of interest.
+
+---
+
+## A set of global frequencies
+
+<br>
+
+- The 1000 Genomes data is too small, and missing some parts of the world
+
+- HGDP, EGDP or SGDP are too small as well
+
+--
+
+<br>
+
+- therefore I used the UK Biobank, which includes individuals from a bit of everywhere + secret recipe for ancestry estimation -> frequencies for 20 global populations
+
+    <br>
+
+    ```{r, out.width = "100%"}
+    knitr::include_graphics("group-sizes.jpg")
+    ```
+
+---
+
+## Verification
+
+<br>
+
+Computing $F_{ST}$ with closest population from the 1000G data: 
+
+<br>
+
+```{r, out.width = "100%"}
+knitr::include_graphics("group-fst.jpg")
+```
+
+---
+
+## Controls (1/2)
+
+<br>
+
+- Biobank Japan:
+    ```{r, out.width = "50%"}
+    knitr::include_graphics("res-bbj.jpg")
+    ```
+    
+<br>
+
+- FinnGen:
+    ```{r, out.width = "57%"}
+    knitr::include_graphics("res-finngen.jpg")
+    ```
+---
+
+## Controls (2/2)
+
+<br>
+
+- UK Biobank:
+    ```{r, out.width = "60%"}
+    knitr::include_graphics("res-ukbb.jpg")
+    ```
+    
+---
+
+## Other results (1/3)
+
+- The COVID-19 Host Genetics Initiative ("European" subset):
+    ```{r, out.width = "42%"}
+    knitr::include_graphics("res-covid-eur.jpg")
+    ```
+- All (except 23andMe):
+    ```{r, out.width = "48%"}
+    knitr::include_graphics("res-covid-no23andme.jpg")
+    ```
+      
+---
+
+## Other results (2/3)
+
+- Epilepsy (EUR + EAS + AFR):
+    ```{r, out.width = "52%"}
+    knitr::include_graphics("res-epilepsy.jpg")
+    ```
+    
+<br>
+    
+> Furthermore, 531 cases of Asian descent, and 147 cases of African descent were included through a meta-analysis.
+
+---
+
+## Other results (3/3)
+
+- PAGE consortium:
+    ```{r, out.width = "45%"}
+    knitr::include_graphics("res-page.jpg")
+    ```
+
+And the "truth" according to their paper:
+
+```{r, out.width = "100%"}
+knitr::include_graphics("page-truth.jpg")
+```
+    
+
+---
+
+## Conclusions
+
+- Works well, but still not perfect (e.g. for single populations)
+
+- Missing populations? (e.g. Native Americans, Native Hawaiian)
+
+- Could add Ashkenazi Jewish group, but still a bit hesitant doing so
+
+--
+
+<br>
+
+## Ideas for improvement
+
+- Increase sample size of groups for more precise allele frequencies
+
+- Use millions of variants (for now, only 500K genotyped variants of UKBB)
+
+- Filter bad variants in the UKBB
+
+- Give more weight to more ancestry-informative variants? to rarer variants?

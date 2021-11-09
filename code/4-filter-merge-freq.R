@@ -65,7 +65,7 @@ print_fst <- function(pop, nb = 7) {
 }
 purrr::walk(names(pop_ukbb_size), ~ cat(print_fst(.), "\n"))
 # - [Japan] JPT: 0.00033 || CHB: 0.007 || CHS: 0.0089 || Asia (East): 0.01 || KHV: 0.014 || CDX: 0.017 || Philippines: 0.021
-# - [Asia (East)] CHS: 9e-04 || KHV: 0.0021 || CHB: 0.0029 || CDX: 0.0034 || Philippines: 0.01 || Japan: 0.01 || JPT: 0.011
+# - [Asia (East)] CHS: 0.0009 || KHV: 0.0021 || CHB: 0.0029 || CDX: 0.0034 || Philippines: 0.01 || Japan: 0.01 || JPT: 0.011
 # - [Philippines] Asia (East): 0.01 || KHV: 0.01 || CDX: 0.011 || CHS: 0.012 || CHB: 0.015 || Japan: 0.021 || JPT: 0.021
 # - [Africa (South)] Africa (Central): 0.0017 || LWK: 0.0035 || Caribbean: 0.0043 || Africa (West): 0.0044 || Africa (East 2): 0.005 || YRI: 0.005 || ESN: 0.0055
 # - [Africa (North)] PUR: 0.01 || Middle East: 0.01 || Italy: 0.01 || Europe (South West): 0.011 || TSI: 0.012 || IBS: 0.012 || Ashkenazi: 0.012

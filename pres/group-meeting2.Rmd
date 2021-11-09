@@ -1,0 +1,138 @@
+---
+title: "Group meeting #2"
+output:
+  xaringan::moon_reader:
+    seal: false
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, width = 70)
+knitr::opts_chunk$set(fig.align = 'center', dev = "svg", out.width = "70%",
+                      echo = FALSE, comment = "", fig.width = 5, global.par = TRUE)
+```
+
+class: title-slide center middle inverse
+
+<br>
+
+# Using the UK Biobank as a global reference of worldwide populations:<br>application to measuring ancestry diversity from GWAS summary statistics
+
+<br>
+
+### Florian Privé
+
+---
+
+### Defining 26 diverse groups from the UKBB
+
+```{r, out.width = "100%"}
+knitr::include_graphics("admixture.jpg")
+```
+
+---
+
+#### Minimum $F_{ST}$ between groups
+
+```{r, out.width = "100%"}
+knitr::include_graphics("min_fst.jpg")
+```
+
+---
+
+### Inferring ancestry proportions from allele frequencies
+
+
+I propose to find the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) which minimize the following problem:
+$$\sum_{j=1}^M w_j \left( f_j^{(0)} - \sum_{k=1}^K \alpha_k f_j^{(k)} \right)^2 ,$$
+where $M=5.8 \cdot 10^6$ is the number of variants, $K=17$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
+
+--
+
+***
+
+This is similar to Summix (<small>Arriaga-MacKenzie, I. S., Matesi, G., Chen, S., Ronco, A., Marker, K. M., Hall, J. R., ... & Hendricks, A. E. (2021). Summix: A method for detecting and adjusting for population structure in genetic summary data. *The American Journal of Human Genetics*.</small>)
+
+The difference: I introduce weights $w_j = 1 / \max\left(f_j^{(0)} (1 - f_j^{(0)}), ~0.01\right)$ to account for more variability in more common variants.
+
+---
+
+### Results
+
+<br>
+
+```{r, out.width = "100%"}
+knitr::include_graphics("results-preprint.jpg")
+```
+
+---
+
+### Alternative weights
+
+<br>
+
+- Accounting for LD? Using weights as inverse LD scores: $w_j = 1 / l_j$
+
+--
+
+- Accounting for more ancestry-informative variants?
+
+    - getting truncated SVD $U \Delta V^T$ on $\frac{G_{i,j} - 2 f_j}{\sqrt{l_j}}$
+    
+    - using $w_j = \max_k{V_{j,k}}$ (also inversely correlated with $l_j$)
+    
+--
+
+<br>
+
+Based on the first tests I made, this basically made almost no difference to the results..
+
+---
+
+### Using penalization?
+
+<br>
+
+Solving instead (still $\alpha_k \ge 0$ and $\sum_k \alpha_k = 1$):
+
+$$\sum_{j=1}^M w_j \left( f_j^{(0)} - \sum_{k=1}^K \alpha_k f_j^{(k)} \right)^2  - \lambda \sum_k \alpha_k^2 ~,$$
+
+This tries to push the $\alpha_k$ to be as large as possible (but remember that they have to sum to one).
+
+The maximum possible regularization is $\lambda_\text{max} = 0.99 \cdot \sigma_{17}$, where $\sigma_{17}$ is the minimum eigenvalue of $F$, where $F_{j,k} = \sqrt{w_j} f_j^{(k)}$.
+
+[TODO: SHOW RESULTS]
+
+---
+
+### Alternative method: mixture of distributions
+
+Consider the allele frequencies from a finite mixture distribution
+
+$$p(x ~|~ \alpha) = \sum_{k=1}^K \alpha_k d_k(x) ~,$$
+where $d_k(x) = dbeta\left(x,~ 1 + 2 \cdot N_k \cdot f^{(k)},~ 1 + 2 \cdot N_k \cdot (1 - f^{(k)}) \right)$ are the components densities (conjugate priors).
+
+--
+
+Then finding the maximum likelihood estimates of $\alpha$ can be solved my maximizing (still contrained): 
+
+$$\sum_{j=1}^M \log{\left( \sum_{k=1}^K \alpha_k L_j^{(k)} \right)},$$
+where $L_j^{(k)} = d_k(f_j^{(0)})$.
+
+This can be solved with R package mixsqp (<small>Kim, Y., Carbonetto, P., Stephens, M., & Anitescu, M. (2020). A fast algorithm for maximum likelihood estimation of mixture proportions using sequential quadratic programming. *Journal of Computational and Graphical Statistics*.</small>)
+
+---
+
+## Conclusions / Questions
+
+<br>
+
+- Was right to remove some groups? E.g. SE Europe. Could maybe merge South East and North East Europe
+
+- Better Bayesian mixture to properly account for N? And allowing admixture
+
+- Any other ideas to improve this? Either the ancestry groups, or the method to estimate ancestry proportions
