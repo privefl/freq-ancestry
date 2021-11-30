@@ -47,7 +47,7 @@ knitr::include_graphics("min_fst.jpg")
 ### Inferring ancestry proportions from allele frequencies
 
 
-I propose to find the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) which minimize the following problem:
+I propose to find the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) which minimizes the following problem:
 $$\sum_{j=1}^M w_j \left( f_j^{(0)} - \sum_{k=1}^K \alpha_k f_j^{(k)} \right)^2 ,$$
 where $M=5.8 \cdot 10^6$ is the number of variants, $K=17$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
 
