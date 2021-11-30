@@ -4,7 +4,8 @@ library(dplyr)
 bigassertr::assert_dir("res_ancestry")
 
 all_freq <- readRDS("data/all_freq.rds")
-# bigreadr::fwrite2(mutate_at(all_freq, -(1:5), ~ round(., 5)), "ref_freqs.csv.gz")
+# bigreadr::fwrite2(all_freq, "ref_freqs.csv.gz")
+projection <- as.matrix(bigreadr::fread2("projection.csv.gz", select = paste0("PC", 1:16)))
 
 snp_match_ancestry <- function(sumstats, join_by_pos = TRUE) {
 
@@ -16,20 +17,13 @@ snp_match_ancestry <- function(sumstats, join_by_pos = TRUE) {
   ) %>%
     mutate(freq = ifelse(beta > 0, freq, 1 - freq))
 
-  X <- as.matrix(all_freq[matched$`_NUM_ID_`, -(1:5)])
-  y <- matched$freq
-  snp_ancestry_summary(y, X)
+  snp_ancestry_summary(
+    freq = matched$freq,
+    info_freq_ref = all_freq[matched$`_NUM_ID_`, -(1:5)],
+    projection = projection[matched$`_NUM_ID_`, ],
+    correction = c(1, 1, 1, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099, 1.123, 1.15, 1.195, 1.256, 1.321, 1.382, 1.443)
+  )
 }
-
-
-## UKBB
-
-ukbb <- bed("../paper-ancestry-matching/data/ukbb.bed")
-af_UKBB <- bed_MAF(ukbb, ncores = nb_cores())$af
-sumstats <- transmute(ukbb$map, chr = chromosome, pos = physical.pos,
-                      a0 = allele2, a1 = allele1, freq = af_UKBB)
-str(res <- snp_match_ancestry(sumstats))
-saveRDS(res, "res_ancestry/UKBB.rds")
 
 
 ## T2D from Biobank Japan
@@ -46,7 +40,7 @@ sumstats <- fread2(
 ) %>%
   filter(chr %in% 1:22)
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/BBJ.rds")
 
 
@@ -59,7 +53,7 @@ sumstats <- bigreadr::fread2("../atw-pred/tmp-data/summary_stats_finngen_R5_T2D.
                       (n_het_cases + n_het_controls)) / (2 * N)) %>%
   filter(chr %in% 1:22)
 
-str(res <- snp_match_ancestry(sumstats, join_by_pos = FALSE))
+(res <- snp_match_ancestry(sumstats, join_by_pos = FALSE))
 saveRDS(res, "res_ancestry/FinnGen.rds")
 
 
@@ -75,7 +69,7 @@ sumstats <- fread2(
 ) %>%
   filter(N > 85e3)
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/GERA.rds")
 
 
@@ -94,7 +88,7 @@ round(sort(pop / sum(pop), decreasing = TRUE), 3)
 # Hispanic-Latino African-American    Asian  Native Hawaiian    Other  Native American
 #           0.446            0.347    0.094            0.079    0.021            0.013
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/PAGE.rds")
 
 
@@ -109,6 +103,7 @@ sumstats <- fread2(
 ) %>%
   mutate_at(3:4, toupper)
 hist(sumstats$N)
+sumstats <- filter(sumstats, N > 4e5)
 
 pop <- c("European" = 288649, "East Asian" = 125725, "African American" = 33671,
          "South Asian" = 9037, "Hispanic" = 608)
@@ -116,7 +111,7 @@ round(sort(pop / sum(pop), decreasing = TRUE), 3)
 # European       East Asian African American      South Asian         Hispanic
 #    0.631            0.275            0.074            0.020            0.001
 
-str(res <- snp_match_ancestry(filter(sumstats, N > 4e5)))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/urate.rds")
 
 
@@ -131,7 +126,7 @@ sumstats <- fread2(
   col.names = c("chr", "pos", "a0", "a1", "freq"),
 )
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/arabic.rds")
 
 
@@ -147,7 +142,7 @@ sumstats <- fread2(txt, select = c("MarkerName", "Allele1", "Allele2", "Freq1"),
          pos = as.integer(sub("^.+:(.+):.+_.+$", "\\1", snpid)),
          snpid = NULL, a1 = toupper(a1), a0 = toupper(a0))
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/t2d_africa.rds")
 
 
@@ -161,7 +156,7 @@ sumstats <- fread2(
   col.names = c("chr", "pos", "a0", "a1", "freq", "N")
 )
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/covid.rds")
 
 
@@ -176,7 +171,7 @@ sumstats <- fread2(
 ) %>%
   mutate_at(3:4, toupper)
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/epilepsy.rds")
 
 
@@ -186,13 +181,15 @@ txt <- runonce::download_file(
   "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST003001-GCST004000/GCST003435/body_fat_percentage_GWAS_PLUS_MC_ALL_ancestry_se_Sex_combined_for_locus_zoom_plot.TBL.txt",
   dir = "tmp-data")
 sumstats <- fread2(
-  txt, select = c("MarkerName", "Allele2", "Allele1", "Freq1", "SNPID"),
-  col.names = c("chr:pos", "a0", "a1", "freq", "rsid")) %>%
+  txt, select = c("MarkerName", "Allele2", "Allele1", "Freq1", "SNPID", "N"),
+  col.names = c("chr:pos", "a0", "a1", "freq", "rsid", "N")) %>%
   tidyr::separate(col = 1, into = c("chr", "pos"), sep = ":") %>%
   mutate(chr = readr::parse_number(chr), pos = as.integer(pos)) %>%
   mutate_at(3:4, toupper)
+hist(sumstats$N)
+sumstats <- filter(sumstats, 7e4 < N, N < 8e4)  # make sure same samples
 
-str(res <- snp_match_ancestry(sumstats, join_by_pos = FALSE))
+(res <- snp_match_ancestry(sumstats, join_by_pos = FALSE))
 saveRDS(res, "res_ancestry/body-fat.rds")
 
 
@@ -207,7 +204,7 @@ sumstats <- fread2(
   col.names = c("chr", "pos", "a0", "a1", "freq"),
 )
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/height-peru.rds")
 
 
@@ -220,7 +217,7 @@ sumstats <- fread2(
   txt, select = c("chromosome", "position", "reference_allele", "other_allele", "eaf"),
   col.names = c("chr", "pos", "a1", "a0", "freq"))
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/eczema.rds")
 
 
@@ -238,7 +235,7 @@ sumstats <- fread2(
   mutate(a0 = toupper(a0), a1 = toupper(a1)) %>%
   filter(info > 0.4, beta_se > 0)
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/PrCa.rds")
 
 
@@ -257,7 +254,7 @@ sumstats <- fread2("tmp-data/sumstats_BRCA.txt", na.strings = "NULL",
                                  "beta", "beta_se", "info")) %>%
   filter(info > 0.4, beta_se > 0)
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/BrCa.rds")
 
 
@@ -272,27 +269,37 @@ sumstats <- fread2("../misspec/tmp-data/sumstats_CAD.txt",
                    col.names = c("chr", "pos", "a0", "a1", "beta", "beta_se",
                                  "p", "freq", "info", "n_studies", "het_pvalue"))
 
-str(res <- snp_match_ancestry(sumstats))
+(res <- snp_match_ancestry(sumstats))
 saveRDS(res, "res_ancestry/CAD.rds")
 
 
 ## All of them
+
+group <- colnames(all_freq)[-(1:5)]
+group[group %in% c("Scandinavia", "United Kingdom", "Ireland")]   <- "Europe (North West)"
+group[group %in% c("Europe (South East)", "Europe (North East)")] <- "Europe (East)"
+pop_names <- unique(group)
+
 files <- list.files("res_ancestry", full.names = TRUE)
-all_coef <- setNames(purrr::map_dfc(files, ~ readRDS(.x)$coef),
+all_coef <- setNames(purrr::map_dfc(files, ~ tapply(readRDS(.x), factor(group, pop_names), sum)),
                      sub("\\.rds$", "", basename(files)))
 
 library(dplyr)
-pop_names <- names(readRDS("res_ancestry/UKBB.rds")$coef)
-pop_N <- c(lengths(readRDS("data/list_ind_pop.rds")), "British-Irish Isles" = 4000)
-pop_N["Africa (East)"] <- pop_N["Africa (East 1)"]
-csv <- bind_cols(Population = pop_names, N = pop_N[pop_names], all_coef) %>%
+pop_N0 <- lengths(readRDS("data/list_ind_pop.rds"))
+pop_N <- setNames(pop_N0[pop_names], pop_names)
+pop_N["Africa (East)"] <- pop_N0["Africa (East 1)"]
+pop_N["Europe (East)"] <- sum(pop_N0[c("Europe (South East)", "Europe (North East)")])
+pop_N["Europe (North West)"] <- sum(pop_N0[c("Scandinavia", "United Kingdom", "Ireland")])
+# TODO: add 1000G N later (in the table)
+
+csv <- bind_cols(Population = pop_names, N = pop_N, all_coef) %>%
   print(n = Inf, width = Inf) %>%
   bigreadr::fwrite2("all_prop.csv")
 
 library(dplyr)
 df <- bigreadr::fread2("all_prop.csv") %>%
   as_tibble() %>%
-  select(1:2, BBJ, FinnGen, `height-peru`, arabic, t2d_africa, UKBB, GERA, PAGE,
+  select(1:2, BBJ, FinnGen, `height-peru`, arabic, t2d_africa, GERA, PAGE,
          BrCa, PrCa, CAD, everything()) %>%
   mutate_at(-(1:2), ~ round(100 * ., 1)) %>%
   print(n = Inf, width = Inf)

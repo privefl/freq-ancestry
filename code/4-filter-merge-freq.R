@@ -98,7 +98,34 @@ min_fst <- tibble::tibble(
   pop_ukbb = rownames(all_fst_1kg)[apply(all_fst_1kg, 2, which.min)],
   fst = apply(all_fst_1kg, 2, min)
 )
-print(arrange(min_fst, fst), n = Inf)
+print(dplyr::arrange(min_fst, fst), n = Inf)
+#    pop_1kg pop_ukbb                 fst
+#  1 JPT     Japan               0.000327
+#  2 STU     Sri Lanka           0.000340
+#  3 FIN     Finland             0.000411
+#  4 ACB     Caribbean           0.000483
+#  5 YRI     Africa (West)       0.000615
+#  6 BEB     Bangladesh          0.000675
+#  7 IBS     Europe (South West) 0.000794
+#  8 CHS     Asia (East)         0.000897
+#  9 CEU     United Kingdom      0.00101
+# 10 TSI     Italy               0.00108
+# 11 GBR     United Kingdom      0.00112
+# 12 ITU     Sri Lanka           0.00148
+# 13 ESN     Africa (West)       0.00149
+# 14 KHV     Asia (East)         0.00210
+# 15 MXL     South America       0.00235
+# 16 PJL     Pakistan            0.00260
+# 17 MSL     Africa (West)       0.00280
+# 18 CHB     Asia (East)         0.00288
+# 19 ASW     Caribbean           0.00295
+# 20 LWK     Africa (East 2)     0.00330
+# 21 CDX     Asia (East)         0.00337
+# 22 GIH     Sri Lanka           0.00426
+# 23 GWD     Africa (West)       0.00495
+# 24 CLM     South America       0.00527
+# 25 PUR     Europe (South West) 0.00941
+# 26 PEL     South America       0.0191
 
 all_scaled_fst <- purrr::pmap(min_fst, function(pop_1kg, pop_ukbb, fst) {
   var_fst <- snp_fst(list(
@@ -120,15 +147,16 @@ X[, "Finland"] <- (143 * X[, "Finland"] + 99 * X_1kg[ind, "FIN"]) / (143 + 99)
 X[, "Bangladesh"] <- (223 * X[, "Bangladesh"] + 86 * X_1kg[ind, "BEB"]) / (223 + 86)
 X[, "Japan"] <- (240 * X[, "Japan"] + 104 * X_1kg[ind, "JPT"]) / (240 + 104)
 X[, "South America"] <- (473 * X[, "South America"] + 84 * X_1kg[ind, "PEL"]) / (473 + 84)
-# Merge very close ancestry groups (based on Fst above)
-X[, "British-Irish Isles"] <- (X$Ireland + X$`United Kingdom`) / 2
-# Remove India (not totally expected Fst) and Caribbean (too close to West Africa and admixed)
-X2 <- dplyr::select(X, -c(Ireland, `United Kingdom`, `Africa (East 2)`, Caribbean, `Africa (Central)`,
-                          Scandinavia, Italy,`Europe (South East)`, `Europe (Central)`, India),
+
+# Remove some groups
+X2 <- dplyr::select(X, -c(`Africa (East 2)`, Caribbean, `Africa (Central)`, `Europe (Central)`, India),
                     `Africa (East)` = `Africa (East 1)`)
 
 ord <- c("Africa (West)", "Africa (South)", "Africa (East)", "Africa (North)", "Middle East",
-         "Ashkenazi", "Europe (North East)", "Finland", "British-Irish Isles", "Europe (South West)",
-         "South America", "Japan", "Asia (East)", "Philippines", "Bangladesh", "Sri Lanka", "Pakistan")
+         "Ashkenazi", "Italy", "Europe (South East)", "Europe (North East)", "Finland",
+         "Scandinavia", "United Kingdom", "Ireland", "Europe (South West)", "South America",
+         "Sri Lanka", "Pakistan", "Bangladesh", "Asia (East)", "Japan", "Philippines")
+stopifnot(ncol(X2) == length(ord))
+dim(X2[ord])
 
 # saveRDS(cbind.data.frame(data_1kg[ind_keep[ind], 1:5], X2[ord]), "data/all_freq.rds")
