@@ -307,5 +307,5 @@ df <- bigreadr::fread2("all_prop.csv") %>%
 df %>%
   mutate_at(-(1:2), ~ ifelse(. == 0, "", as.character(.))) %>%
   xtable::xtable() %>%
-  print(caption.placement = "top", hline.after = c(-1, 0, 4, 5, 10, 11, 14, 17),
+  print(caption.placement = "top", hline.after = c(-1, 0, 4, 5, 11, 12, 15, 18),
         include.rownames = FALSE, file = "ancestry-proportions.tex")

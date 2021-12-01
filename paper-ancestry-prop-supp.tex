@@ -178,25 +178,52 @@ We report all $F_{ST}$ at \url{https://github.com/privefl/freq-ancestry/blob/mai
 For each of the 1KG populations, we identify the closest ancestry group among those we defined, compute the $F_{ST}$ for all variants and scale them by dividing by the overall $F_{ST}$ with this group.
 For each variant, we then sum these scaled $F_{ST}$ (one for each 1KG population), and identify and remove 24,040 variants with a large score.
 This enable us to identify variants with possible errors in the UK Biobank.
+We obtain a set of 5,816,590 variants left.
 
-\subsection{Designing the final set of reference populations}
+\subsection{Designing the final set of reference populations and preparing PCA projection}
 
 The 26 ancestry groups defined previously comprise a total of 15,645 individuals from the UK Biobank. We combine them with 2490 individuals from the 26 populations of the 1KG data, and use a pruned set of 252,893 high-quality genotyped variants to run an admixture analysis (K = 15) using function \texttt{snmf} from R package LEA \cite[]{frichot2014fast,gain2020lea}.
-Ancestry proportions for the 52 groups are represented in Figure \ref{fig:admixture}.
-We can see that we have defined very homogeneous groups; however based on these results and previous $F_{ST}$, we decide to slightly modify these groups.
-First, for the Finland, Bangladesh and Japan ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
+Ancestry proportions for the 52 groups are represented in figure \ref{fig:admixture}.
+We can see that we have defined very homogeneous groups.
+Then, based on these results and previous $F_{ST}$, we merge four of the groups we defined with some 1KG populations.
+Indeed, for the ``Finland'', ``Bangladesh'' and ``Japan'' ancestry groups, we compute a weighted average of allele frequencies with the ones from the 1KG data (FIN, BEB and JPT) to increase the small sample size of these groups.
 We do the same for ``South America'' and ``PEL'' in order to capture slightly more of what is probably an Amerindian ancestral component (in blue).
-Second, we merge the ``Irish'' and ``United Kingdom'' groups as a new ``British-Irish Isles'' group.
-Third, we remove some groups that could be retrieved from combining two or three other groups: ``Africa (East 2)'', ``Caribbean'', ``Africa (Central)'', ``Scandinavia'', ``Italy'', ``Europe (South East)'', ``Europe (Central)'', and ``India''.
 
-\begin{figure}[hp]
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.92\textwidth]{admixture}}
 	\caption{Admixture coefficients (for K = 15 ancestral populations) for the individuals from the 26 ancestry groups we defined previously from the UK Biobank, as well as the 26 1KG populations. \label{fig:admixture}}
 \end{figure}
 
-This results in the set of 5,816,590 variants for 17 ancestry groups, which we provide for download and use to estimate ancestry proportions in GWAS summary statistics.
+We then compute the PCA from the 15,645 UKBB individuals and the 1KG individuals from the four added populations, across the 5,816,590 variants.
+We do not center the genotype matrix to capture one more component, and for an easier projection later.
+However, we do scale the genotypes by dividing them by the square root of LD scores to prevent from capturing LD structure \cite[]{zou2010quantification}.
+We verify that PC loadings are homogeneously distributed along the genome (no peak) in figure \ref{fig:loadings} and that PC scores are capturing population structure in  figure \ref{fig:scores} \cite[]{prive2020efficient}.
+Based on the PC scores and admixture results (Figures \ref{fig:admixture} and \ref{fig:scores}), we remove some groups that are admixed or too central, which therefore could be retrieved from combining two or three other groups: ``Africa (East 2)'', ``Caribbean'', ``Africa (Central)'', ``Europe (Central)'', and ``India''.
+This results in a set of 5,816,590 variants for 21 ancestry groups, which we provide for download and use to estimate ancestry proportions in GWAS summary statistics.
+We also provide PC loadings scaled so that they can be directly used with allele frequencies. Note that due to the shrinkage when projecting PCs, a correction needs to be applied when projecting new allele frequencies \cite[]{prive2020efficient}. 
+We use six 1KG populations (YRI, IBS, STU, CHS, GBR, and TSI) and the corresponding UKBB ancestry groups we defined (``Africa (West)'', ``Europe (South West)'', ``Sri Lanka'', ``Asia (East)'', ``United Kingdom'', and ``Italy'') to estimate the correction coefficients. From PC1 to PC16, these are 1.000, 1.000, 1.000, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099, 1.123, 1.150, 1.195, 1.256, 1.321, 1.382, and 1.443.
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.92\textwidth]{all_loadings}}
+	\caption{PCA loadings over 5.8M variants for the PCA recomputed from the subset of UKBB and 1KG individuals used in the reference ancestry groups. \label{fig:loadings}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.85\textwidth]{all_scores}}
+	\caption{PCA scores for the PCA recomputed from the subset of UKBB and 1KG individuals used in the reference ancestry groups. Black points represent the projection of the allele frequencies from the 21 ancestry groups kept. \label{fig:scores}}
+\end{figure}
+
+Finally, the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) is estimated by minimizing the following problem:
+\(\sum_{l=1}^L \left( p_l^{(0)} - \sum_{k=1}^K \alpha_k p_l^{(k)} \right)^2,\)
+where $L$ is the number of PCs (16 here), $K$ the number of reference populations (21 here), $p_l^{(k)}$ is the projection of frequencies from population $k$ onto PC $l$, and $p_l^{(0)}$ is the (corrected) projection of frequencies from the cohort of interest onto PC $l$.
+Note that we replace the quadratic term from this problem by the nearest positive-definite matrix to make it solvable, because of the lower number of PCs compared to populations.
+Note that, because they are very close ancestry groups, we merge a posteriori the coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
 
 \bibliographystyle{natbib}
 \bibliography{refs}
