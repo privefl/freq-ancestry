@@ -196,7 +196,7 @@ We do the same for ``South America'' and ``PEL'' in order to capture slightly mo
 
 We then compute the PCA from the 15,645 UKBB individuals and the 1KG individuals from the four added populations, across the 5,816,590 variants.
 We do not center the genotype matrix to capture one more component, and for an easier projection later.
-However, we do scale the genotypes by dividing them by the square root of LD scores to prevent from capturing LD structure \cite[]{zou2010quantification}.
+However, we do scale the genotypes by dividing them by the square root of LD scores to prevent from capturing LD structure in the PCA \cite[]{zou2010quantification}.
 We verify that PC loadings are homogeneously distributed along the genome (no peak) in figure \ref{fig:loadings} and that PC scores are capturing population structure in  figure \ref{fig:scores} \cite[]{prive2020efficient}.
 Based on the PC scores and admixture results (Figures \ref{fig:admixture} and \ref{fig:scores}), we remove some groups that are admixed or too central, which therefore could be retrieved from combining two or three other groups: ``Africa (East 2)'', ``Caribbean'', ``Africa (Central)'', ``Europe (Central)'', and ``India''.
 This results in a set of 5,816,590 variants for 21 ancestry groups, which we provide for download and use to estimate ancestry proportions in GWAS summary statistics.
