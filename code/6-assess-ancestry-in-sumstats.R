@@ -4,8 +4,8 @@ library(dplyr)
 bigassertr::assert_dir("res_ancestry")
 
 all_freq <- readRDS("data/all_freq.rds")
-# bigreadr::fwrite2(all_freq, "ref_freqs.csv.gz")
-projection <- as.matrix(bigreadr::fread2("projection.csv.gz", select = paste0("PC", 1:16)))
+# fwrite2(all_freq, "ref_freqs.csv.gz")
+projection <- as.matrix(fread2("projection.csv.gz", select = paste0("PC", 1:16)))
 
 snp_match_ancestry <- function(sumstats, join_by_pos = TRUE) {
 
@@ -17,12 +17,56 @@ snp_match_ancestry <- function(sumstats, join_by_pos = TRUE) {
   ) %>%
     mutate(freq = ifelse(beta > 0, freq, 1 - freq))
 
-  snp_ancestry_summary(
+
+  freq_ref <- all_freq[matched$`_NUM_ID_`, -(1:5)]   #[c(1, 12, 15, 16, 19)]
+
+  res <- snp_ancestry_summary(
     freq = matched$freq,
-    info_freq_ref = all_freq[matched$`_NUM_ID_`, -(1:5)],
+    info_freq_ref = freq_ref,
     projection = projection[matched$`_NUM_ID_`, ],
-    correction = c(1, 1, 1, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099, 1.123, 1.15, 1.195, 1.256, 1.321, 1.382, 1.443)
+    correction = c(1, 1, 1, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099,
+                   1.123, 1.15, 1.195, 1.256, 1.321, 1.382, 1.443)
   )
+
+
+  # system.time(
+  #   res2 <- unlist(
+  #     Summix::summix(
+  #       data = cbind(freq = matched$freq, freq_ref),
+  #       reference = names(freq_ref),
+  #       observed = "freq"
+  #     )[names(freq_ref)]
+  #   )
+  # ) # > 3 min for 5 pops
+  # Summix v1.99.2 does not converge when using too many reference populations
+
+
+  # then this is equivalent to what Summix does (no PCA projection):
+  X <- as.matrix(freq_ref)
+  y <- matched$freq
+  # solve QP problem using https://stats.stackexchange.com/a/21566/135793
+  res3 <- quadprog::solve.QP(
+    Dmat = crossprod(X),
+    dvec = crossprod(y, X),
+    Amat = cbind(1, diag(ncol(X))),
+    bvec = c(1, rep(0, ncol(X))),
+    meq  = 1
+  )$solution  # < 1 sec
+  # all.equal(res3, res2) # same
+
+
+  # also try with a subset of 100K variants
+  ind <- sample(nrow(freq_ref), 100e3)
+  res4 <- snp_ancestry_summary(
+    freq = matched$freq[ind],
+    info_freq_ref = freq_ref[ind, ],
+    projection = projection[matched$`_NUM_ID_`[ind], ],
+    correction = c(1, 1, 1, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099,
+                   1.123, 1.15, 1.195, 1.256, 1.321, 1.382, 1.443)
+  )
+
+
+  list(res, setNames(round(res3, 7), names(res)), res4)
 }
 
 
@@ -47,7 +91,7 @@ saveRDS(res, "res_ancestry/BBJ.rds")
 ## T2D from FinnGen
 
 (N <- 29193 + 182573)
-sumstats <- bigreadr::fread2("../atw-pred/tmp-data/summary_stats_finngen_R5_T2D.gz") %>%
+sumstats <- fread2("../atw-pred/tmp-data/summary_stats_finngen_R5_T2D.gz") %>%
   transmute(rsid = rsids, chr = `#chrom`, pos, a0 = ref, a1 = alt,
             freq = (2 * (n_hom_cases + n_hom_controls) +
                       (n_het_cases + n_het_controls)) / (2 * N)) %>%
@@ -280,10 +324,6 @@ group[group %in% c("Scandinavia", "United Kingdom", "Ireland")]   <- "Europe (No
 group[group %in% c("Europe (South East)", "Europe (North East)")] <- "Europe (East)"
 pop_names <- unique(group)
 
-files <- list.files("res_ancestry", full.names = TRUE)
-all_coef <- setNames(purrr::map_dfc(files, ~ tapply(readRDS(.x), factor(group, pop_names), sum)),
-                     sub("\\.rds$", "", basename(files)))
-
 library(dplyr)
 pop_N0 <- lengths(readRDS("data/list_ind_pop.rds"))
 pop_N <- setNames(pop_N0[pop_names], pop_names)
@@ -292,15 +332,26 @@ pop_N["Europe (East)"] <- sum(pop_N0[c("Europe (South East)", "Europe (North Eas
 pop_N["Europe (North West)"] <- sum(pop_N0[c("Scandinavia", "United Kingdom", "Ireland")])
 # TODO: add 1000G N later (in the table)
 
-csv <- bind_cols(Population = pop_names, N = pop_N, all_coef) %>%
-  print(n = Inf, width = Inf) %>%
-  bigreadr::fwrite2("all_prop.csv")
+files <- list.files("res_ancestry", full.names = TRUE)
+all_res <- setNames(lapply(files, readRDS), sub("\\.rds$", "", basename(files)))
+
 
 library(dplyr)
-df <- bigreadr::fread2("all_prop.csv") %>%
+purrr::iwalk(setNames(1:3, c("", "_summix", "_100K")), function(.x, .y) {
+  all_res %>%
+    purrr::map_dfc(function(three_res) tapply(three_res[[.x]], factor(group, pop_names), sum)) %>%
+    bind_cols(Population = pop_names, N = pop_N, .) %>%
+    select(1:2, BBJ, FinnGen, `height-peru`, arabic, t2d_africa, GERA, PAGE,
+           BrCa, PrCa, CAD, everything()) %>%
+    print(n = Inf, width = Inf) %>%
+    fwrite2(paste0("all_prop", .y, ".csv")) %>%
+    print()
+})
+
+
+# Model for exporting to LaTeX
+df <- fread2("all_prop.csv") %>%
   as_tibble() %>%
-  select(1:2, BBJ, FinnGen, `height-peru`, arabic, t2d_africa, GERA, PAGE,
-         BrCa, PrCa, CAD, everything()) %>%
   mutate_at(-(1:2), ~ round(100 * ., 1)) %>%
   print(n = Inf, width = Inf)
 

@@ -19,6 +19,8 @@
 \usepackage{hyperref}
 \usepackage{bbm}
 \usepackage{makecell}
+\usepackage{placeins}
+\usepackage{attachfile}
 
 %\renewcommand{\arraystretch}{1.8}
 
@@ -45,7 +47,7 @@
 
 \let\tabbeg\tabular
 \let\tabend\endtabular
-\renewenvironment{tabular}{\begin{adjustbox}{max width=0.9\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+\renewenvironment{tabular}{\begin{adjustbox}{max width=\textwidth}\tabbeg}{\tabend\end{adjustbox}}
 
 \makeatletter
 
@@ -219,7 +221,98 @@ where $L$ is the number of PCs (16 here), $K$ the number of reference population
 Note that we replace the quadratic term from this problem by the nearest positive-definite matrix to make it solvable, because of the lower number of PCs compared to populations.
 Note that, because they are very close ancestry groups, we merge a posteriori the coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\FloatBarrier
+
+\subsection{Supplementary results}
+
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Thu Mar 24 14:00:51 2022
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|l|c||c|c|c|c|c||c|c|c|c|c|c|c|c|c|c|}
+		\hline
+		Ancestry group & N & BBJ & FinnGen & Per\'u & Qatar & Africa & GERA & PAGE & BrCa & PrCa & CAD & body fat & covid & eczema & epilepsy & urate \\ 
+		\hline
+		Africa (West) & 735 & 0.1 &  &  &  & 34.8 & 2.1 & 26.4 & 0.2 & 0.2 & 2.4 & 0.5 & 4 & 0.4 & 0.7 & 3.2 \\ 
+		Africa (South) & 449 &  &  &  &  & 65 & 0.5 & 6.9 & 0.2 & 0.1 & 1.1 & 0.5 & 1.3 & 0.1 & 0.1 & 3.4 \\ 
+		Africa (East) & 276 &  &  &  & 13 & 0.2 &  & 0.3 &  &  &  & 0.1 & 0.2 &  &  & 0.9 \\ 
+		Africa (North) & 268 &  &  &  & 22.5 &  & 0.1 & 1.8 &  &  &  &  &  &  &  &  \\ 
+		\hline
+		Middle East & 523 &  &  &  & 60.8 &  & 1 &  &  & 0.2 & 3 & 1.1 & 0.3 &  & 0.8 & 1 \\ 
+		\hline
+		Ashkenazi & 1975 &  &  &  & 1.5 &  & 5.1 & 0.4 & 0.5 & 2.5 & 1.3 & 1.6 & 0.6 & 0.9 & 2.4 & 0.8 \\ 
+		Italy & 345 &  &  &  &  &  & 5.1 & 2.4 & 2.7 & 3.3 & 3 & 3.8 & 0.8 & 3.4 & 5.6 & 2.5 \\ 
+		Europe (East) & 667 &  & 7.6 &  &  &  & 7.9 & 0.5 & 8.5 & 9.6 & 10.6 & 10.7 & 11.5 & 10.3 & 9.7 & 8.2 \\ 
+		Finland & 143 (+ 99) &  & 83.6 &  &  &  & 1.7 & 0.6 & 8.9 & 12.1 & 6.1 & 7.5 & 13 & 10 & 5.3 & 2.2 \\ 
+		Europe (North West) & 4416 &  & 7.4 &  &  &  & 57.8 & 9.5 & 67.7 & 63.7 & 51.7 & 57.2 & 60.8 & 69.4 & 66.4 & 43.8 \\ 
+		Europe (South West) & 603 &  &  &  &  &  & 6.8 & 9 & 6 & 5.8 & 3.3 & 4.3 & 2.3 & 4.3 & 5.2 & 3.6 \\ 
+		\hline
+		South America & 473 (+ 84) & 0.2 & 0.6 & 98.2 &  &  & 4.6 & 24.9 & 1.1 & 0.7 & 1.4 & 0.5 & 1.9 & 0.5 & 0.3 & 0.1 \\ 
+		\hline
+		Sri Lanka & 372 & 0.1 &  &  & 2.2 &  &  & 0.8 & 0.7 & 0.1 & 2.1 & 1.6 & 0.3 &  &  & 0.2 \\ 
+		Pakistan & 400 &  &  &  &  &  &  &  & 0.9 & 0.3 & 6.8 & 4.4 & 1.2 &  &  & 0.7 \\ 
+		Bangladesh & 223 (+ 86) & 0.2 &  &  &  &  & 0.3 & 1.3 & 1.4 & 0.9 & 2.9 & 2.4 & 0.9 &  &  & 0.7 \\ 
+		\hline
+		Asia (East) & 961 & 3.9 &  &  &  &  & 3.7 & 2.5 & 0.7 & 0.3 & 2.5 & 1.5 & 0.3 & 0.1 & 3.3 & 2.3 \\ 
+		Japan & 240 (+ 104) & 95.6 & 0.8 & 1.8 &  &  & 1.9 & 8.8 & 0.4 & 0.2 & 1.8 & 2.2 & 0.5 & 0.4 &  & 26.2 \\ 
+		Philippines & 295 &  &  &  &  &  & 1.4 & 4 &  &  &  &  & 0.2 & 0.1 & 0.1 & 0.2 \\ 
+		\hline
+	\end{tabular}
+	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the Summix method, for several GWAS summary statistics.
+		Note that an equivalent of the Summix method was used, relying on a different quadratic programming solver, since Summix did not converge properly when using 21 reference populations. 
+		Note that ``Ireland'', ``United Kingdom'' and ``Scandinavia'' are merged as a single ``Europe (North West)'' group. Similarly, ``Europe (North East)'' and ``Europe (South East)'' are merged as a single ``Europe (East)'' group.
+		Citations for the allele frequencies used are presented in Table 1 in the main text. \label{tab:summix}}
+\end{table}
+
+
+
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Thu Mar 24 14:18:58 2022
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|l|c||c|c|c|c|c||c|c|c|c|c|c|c|c|c|c|}
+		\hline
+		Ancestry group & N & BBJ & FinnGen & Per\'u & Qatar & Africa & GERA & PAGE & BrCa & PrCa & CAD & body fat & covid & eczema & epilepsy & urate \\ 
+		\hline
+		Africa (West) & 735 &  &  &  &  & 31.3 & 1.8 & 27.6 &  &  & 3.2 & 0.9 & 3.9 &  & 0.4 & 1.3 \\ 
+		Africa (South) & 449 &  &  &  &  & 68.7 & 1 & 5.9 & 0.4 & 0.4 &  & 0.1 & 1.3 & 0.7 &  & 4.4 \\ 
+		Africa (East) & 276 &  &  &  & 12.1 &  &  & 0.1 &  &  & 0.2 &  & 0.4 &  &  & 1.7 \\ 
+		Africa (North) & 268 &  &  &  & 23.8 &  &  &  &  &  &  &  & 0.3 &  & 2.1 &  \\ 
+		\hline
+		Middle East & 523 &  &  &  & 63.7 &  &  &  &  &  & 6.1 & 0.4 &  &  & 0.9 & 1.2 \\ 
+		\hline
+		Ashkenazi & 1975 &  &  &  &  &  & 4 & 0.1 &  & 2 & 0.6 & 0.7 & 0.7 & 0.5 & 2 &  \\ 
+		Italy & 345 &  &  &  &  &  & 3.8 &  & 6.5 & 0.7 &  & 8.5 &  &  &  & 3.6 \\ 
+		Europe (East) & 667 &  &  &  &  &  & 13.5 & 2.2 & 1.3 & 12.2 & 13.8 & 9 & 12.3 & 12.6 & 12.7 & 8.9 \\ 
+		Finland & 143 (+ 99) &  & 99.9 &  &  &  & 2.4 &  & 9.2 & 13.1 & 6.9 & 8.8 & 13.6 & 14.9 & 3 & 3.7 \\ 
+		Europe (North West) & 4416 &  &  &  &  &  & 57 & 4.1 & 67.5 & 63.9 & 54.5 & 60.3 & 62.2 & 67.9 & 65.5 & 44 \\ 
+		Europe (South West) & 603 &  &  &  &  &  & 4.4 & 16.8 & 8.5 & 4.5 &  &  &  & 2.5 & 9.9 &  \\ 
+		\hline
+		South America & 473 (+ 84) &  &  & 100 &  &  & 4.5 & 25.6 & 1.4 & 0.7 & 1.5 & 0.5 & 1.6 & 0.3 &  &  \\ 
+		\hline
+		Sri Lanka & 372 &  &  &  & 0.5 &  & 0.3 & 2.4 & 3.6 &  & 8.4 & 7 & 0.1 &  &  & 1.5 \\ 
+		Pakistan & 400 &  &  &  &  &  &  &  &  &  &  &  & 2.5 &  &  &  \\ 
+		Bangladesh & 223 (+ 86) &  &  &  &  &  &  &  &  & 1.9 &  &  &  &  &  &  \\ 
+		\hline
+		Asia (East) & 961 &  &  &  &  &  & 3.5 & 3.1 & 1.1 & 0.6 & 2.2 & 1.1 &  & 0.1 & 1.8 &  \\ 
+		Japan & 240 (+ 104) & 100 &  &  &  &  & 2.1 & 8.3 & 0.4 &  & 2.7 & 2.8 & 0.7 & 0.3 & 1.1 & 29.7 \\ 
+		Philippines & 295 &  & 0.1 &  &  &  & 1.6 & 3.7 &  &  &  &  & 0.5 & 0.3 & 0.5 &  \\ 
+		\hline
+	\end{tabular}
+	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the proposed \texttt{snp\_ancestry\_summary} method while subsetting to 100,000 variants at random, for several GWAS summary statistics.
+	Note that an equivalent of the Summix method was used, relying on a different quadratic programming solver, since Summix did not converge properly when using 21 reference populations. 
+	Note that ``Ireland'', ``United Kingdom'' and ``Scandinavia'' are merged as a single ``Europe (North West)'' group. Similarly, ``Europe (North East)'' and ``Europe (South East)'' are merged as a single ``Europe (East)'' group.
+	Citations for the allele frequencies used are presented in Table 1 in the main text. \label{tab:100K}}
+\end{table}
+
+\begin{table}[ht]
+	\centering
+	\attachfile[icon=Paperclip]{ancestry_sgdp.xlsx}{ double click on the icon to open the embedded Excel table}
+	\caption{Ancestry proportions (in \%) for all 345 individuals of the Simons genome diversity project \cite[]{mallick2016simons} inferred either from the proposed \texttt{snp\_ancestry\_summary} method (using the genotypes of an individual divided by 2 in place of allele frequencies) or using the projection analysis of ADMIXTURE (\texttt{-P}, \cite{shringarpure2016efficient}).
+	This table is also available in CSV format at \url{https://github.com/privefl/freq-ancestry/blob/main/ancestry_sgdp.csv}. \label{tab:sgdp}}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
