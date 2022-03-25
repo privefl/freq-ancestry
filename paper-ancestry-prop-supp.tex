@@ -86,21 +86,23 @@
 
 \subsection{Identifying 26 ancestry groups from the UK Biobank}
 
-In this section, we use the first 16 principal components (PCs, \cite{prive2020efficient}) reported by the UK Biobank (Data-Field 22009, \cite{bycroft2018uk}), the self-reported ancestry (Data-Field 21000), and the country of birth (Data-Field 20115).
-For the individuals with a missing country of birth, we assign to them ``United Kingdom'' when they self-identify as ``British'' and ``Ireland'' when they self-identify as ``Irish''.
-Hereinafter, we use the Euclidean distance based on the first 16 PCs as we have shown to be an appropriate measure of the genetic distance between populations \cite[]{prive2021high}.
-The thresholds we use for this distance are based on carefully inspecting the self-reported ancestry and country of birth of individuals kept or excluded.
+In this section, we use the principal components (PCs, Data-Field 22009), the self-reported ancestry (Data-Field 21000), and the country of birth (Data-Field 20115) from the UK Biobank \cite[]{bycroft2018uk} to first identify 26 homogeneous ancestry groups.
+We use the first 16 PCs only, which we have shown to be the PCs capturing population structure in the UK Biobank \cite[]{prive2020efficient}. 
+We compute Euclidean distances (L2-norms) from these PCs (i.e.\ in the PCA space), which we have shown to be an appropriate measure of the genetic distance between populations since these (squared) distances are largely proportional to the $F_{ST}$ between populations \cite[]{prive2021high}.
 
+For the individuals with a missing country of birth, we assign to them ``United Kingdom'' when they self-identify as ``British'' and ``Ireland'' when they self-identify as ``Irish''.
 Since the country of birth may poorly corresponds to the genetic ancestry that we are interested in, we perform some quality control on this information.
 Indeed, there are many individuals born in Africa with an Asian self-reported ancestry; we set their country of birth to missing. 
-We also set this information to missing for 1/ individuals born outside of Europe that are too close (log-distance lower than 4) to the UK; 2/ individuals born outside the UK within a log-distance of 2.5 to the UK; 3/ individuals born in Europe not within a log-distance of 5 to the UK.
-Finally, we keep only individuals born in South Africa with a log-distance to the UK larger than 6 (individuals of African ancestry). 
+We also set this information to missing for 1/ individuals born outside of Europe that are too close to the UK (log-distance to the UK center lower than 4); 2/ individuals born outside the UK within a log-distance of 2.5 to the UK; 3/ individuals born in Europe not within a log-distance of 5 to the UK.
+Finally, for individuals born in South Africa, we keep only the ones with a log-distance to the UK larger than 6 (individuals of African ancestry). 
+Note, for reference, that Ireland is at a log-distance of 3.3 from the UK, the Middle East at 4.7 and West Africa at 6. 
 After applying these filters, there are still many individuals born outside of the UK and Ireland, including e.g.\ 3352 individuals from India, 1100 from Germany, 1036 from Nigeria, and 76 countries with at least 50 individuals.
 
-Then, to define a homogeneous group to be used as a reference population, we choose a country, compute the robust PC center of individuals born in this country (using the geometric median, \cite{prive2021high}), and choose to include in this group all individuals within a chosen log-distance to the center. The distance threshold is chosen based on the countries of birth included.
+Then, to construct a homogeneous ancestry group to be used as a reference population, we choose a country, compute the robust PC center of individuals born in this country (using the geometric median, \cite{prive2021high}), and choose to include in this group all individuals within a chosen log-distance to the center. 
+We investigate multiple choices for the countries and distance thresholds by carefully and manually inspecting the self-reported ancestry and country of birth of the individuals kept or excluded from these groups.
 For groups named after a country, we further restrict to individuals born in this country.
-We limit the ancestry groups to 2000 individuals in order not to have very uneven sample sizes; we pick at random among the United Kingdom and Ireland groups.
-We manually try different country centers and distance thresholds to cover as much of the worldwide populations as possible, without having overlapping groups.
+For the United Kingdom and Ireland groups, we pick 2000 individuals at random for each, in order not to have very uneven (larger) sample sizes compared to the other groups.
+We manually investigate different country centers and distance thresholds to cover as much of the worldwide populations as possible, without having overlapping groups.
 We also include two other groups: one ``Ashkenazi'' group based on a PC center we defined in \cite{prive2021high}, and a ``South America'' group based on individuals with $\text{PC6} > 50$ and $\text{PC8} < -30$ (clearly separated from the rest of individuals from the UK Biobank). 
 Finally, we investigate individuals that are far away from any of the groups defined previously, and add a last group based on a center from remaining individuals born in India.
 
@@ -202,7 +204,7 @@ However, we do scale the genotypes by dividing them by the square root of LD sco
 We verify that PC loadings are homogeneously distributed along the genome (no peak) in figure \ref{fig:loadings} and that PC scores are capturing population structure in  figure \ref{fig:scores} \cite[]{prive2020efficient}.
 Based on the PC scores and admixture results (Figures \ref{fig:admixture} and \ref{fig:scores}), we remove some groups that are admixed or too central, which therefore could be retrieved from combining two or three other groups: ``Africa (East 2)'', ``Caribbean'', ``Africa (Central)'', ``Europe (Central)'', and ``India''.
 This results in a set of 5,816,590 variants for 21 ancestry groups, which we provide for download and use to estimate ancestry proportions in GWAS summary statistics.
-We also provide PC loadings scaled so that they can be directly used with allele frequencies. Note that due to the shrinkage when projecting PCs, a correction needs to be applied when projecting new allele frequencies \cite[]{prive2020efficient}. 
+We also provide PC loadings scaled so that they can be directly used with allele frequencies. Note that, due to the shrinkage when projecting PCs, a correction needs to be applied when projecting new allele frequencies \cite[]{prive2020efficient}. 
 We use six 1KG populations (YRI, IBS, STU, CHS, GBR, and TSI) and the corresponding UKBB ancestry groups we defined (``Africa (West)'', ``Europe (South West)'', ``Sri Lanka'', ``Asia (East)'', ``United Kingdom'', and ``Italy'') to estimate the correction coefficients. From PC1 to PC16, these are 1.000, 1.000, 1.000, 1.008, 1.021, 1.034, 1.052, 1.074, 1.099, 1.123, 1.150, 1.195, 1.256, 1.321, 1.382, and 1.443.
 
 \begin{figure}[p]
@@ -219,7 +221,7 @@ Finally, the convex combination of ancestry proportions $\alpha_k$ (positive and
 \(\sum_{l=1}^L \left( p_l^{(0)} - \sum_{k=1}^K \alpha_k p_l^{(k)} \right)^2,\)
 where $L$ is the number of PCs (16 here), $K$ the number of reference populations (21 here), $p_l^{(k)}$ is the projection of frequencies from population $k$ onto PC $l$, and $p_l^{(0)}$ is the (corrected) projection of frequencies from the cohort of interest onto PC $l$.
 Note that we replace the quadratic term from this problem by the nearest positive-definite matrix to make it solvable, because of the lower number of PCs compared to populations.
-Note that, because they are very close ancestry groups, we merge a posteriori the coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
+Note that, because they are very close ancestry groups, we merge a posteriori the ancestry coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -261,9 +263,9 @@ Note that, because they are very close ancestry groups, we merge a posteriori th
 		\hline
 	\end{tabular}
 	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the Summix method, for several GWAS summary statistics.
-		Note that an equivalent of the Summix method was used, relying on a different quadratic programming solver, since Summix did not converge properly when using 21 reference populations. 
-		Note that ``Ireland'', ``United Kingdom'' and ``Scandinavia'' are merged as a single ``Europe (North West)'' group. Similarly, ``Europe (North East)'' and ``Europe (South East)'' are merged as a single ``Europe (East)'' group.
-		Citations for the allele frequencies used are presented in Table 1 in the main text. \label{tab:summix}}
+	Note that an equivalent of the Summix method was used, relying on a different quadratic programming solver, since Summix did not converge properly when using 21 reference populations. 
+	Note that, because they are very close ancestry groups, we merge a posteriori the ancestry coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
+	Citations for the allele frequencies used are presented in Table 1 in the main text. \label{tab:summix}}
 \end{table}
 
 
@@ -301,9 +303,8 @@ Note that, because they are very close ancestry groups, we merge a posteriori th
 		Philippines & 295 &  & 0.1 &  &  &  & 1.6 & 3.7 &  &  &  &  & 0.5 & 0.3 & 0.5 &  \\ 
 		\hline
 	\end{tabular}
-	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the proposed \texttt{snp\_ancestry\_summary} method while subsetting to 100,000 variants at random, for several GWAS summary statistics.
-	Note that an equivalent of the Summix method was used, relying on a different quadratic programming solver, since Summix did not converge properly when using 21 reference populations. 
-	Note that ``Ireland'', ``United Kingdom'' and ``Scandinavia'' are merged as a single ``Europe (North West)'' group. Similarly, ``Europe (North East)'' and ``Europe (South East)'' are merged as a single ``Europe (East)'' group.
+	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the proposed \texttt{snp\_ancestry\_summary} method while subsetting to 100,000 variants at random, for several GWAS summary statistics. 
+	Note that, because they are very close ancestry groups, we merge a posteriori the ancestry coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
 	Citations for the allele frequencies used are presented in Table 1 in the main text. \label{tab:100K}}
 \end{table}
 

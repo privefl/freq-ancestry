@@ -47,7 +47,7 @@
 
 \let\tabbeg\tabular
 \let\tabend\endtabular
-\renewenvironment{tabular}{\begin{adjustbox}{max width=0.95\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+\renewenvironment{tabular}{\begin{adjustbox}{max width=0.98\textwidth}\tabbeg}{\tabend\end{adjustbox}}
 
 \makeatletter
 
@@ -78,7 +78,7 @@
 \abstract{\noindent\textbf{Motivation:} Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.\\
 \textbf{Results:} Using the UK Biobank data, a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom, we carefully define 21 distinct ancestry groups from all four corners of the world. 
 These ancestry groups can serve as a global reference of worldwide populations, with a handful of applications.
-Here we develop a method that use allele frequencies derived from these ancestry groups to effectively measure diversity from summary statistics of any genetic dataset.\\
+Here we develop a method that use allele frequencies and principal components derived from these ancestry groups to effectively measure ancestry proportions from allele frequencies of any genetic dataset.\\
 \textbf{Availability:} This method is implemented as function snp\_ancestry\_summary as part of R package bigsnpr.\\
 \textbf{Contact:} \href{florian.prive.21@gmail.com}{florian.prive.21@gmail.com}\\
 %\textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}	online.
@@ -100,20 +100,24 @@ Therefore, the UK Biobank can serve as a global reference of worldwide populatio
 
 \section*{Implementation}
 
-Here we carefully use information on self-reported ancestry, country of birth, and genetic similarity to define 21 distinct ancestry groups from the UK Biobank to be used as global reference populations. 
-These include nine groups with genetic ancestries from Europe, four from Africa, three from South Asia, three from East Asia, one from the Middle East, and one from South America (Table \ref{tab:table1}).
-The detailed procedure used to define these groups is presented in the Supplementary Materials.
+Here we carefully use information on self-reported ancestry, country of birth, and genetic similarity to define 21 distinct ancestry groups from the UK Biobank to be used as global reference populations, which is the first innovation of this paper. 
+These include nine groups with genetic ancestries from Europe, four from Africa, three from South Asia, three from East Asia, one from the Middle East, and one from South America (which are later merged into 18 groups in table \ref{tab:table1}).
+The detailed procedure used to construct these reference ancestry groups is presented in the Supplementary Materials.
 As a direct application of these groups, we propose a new method to estimate global ancestry proportions from a cohort based on its allele frequencies only (i.e.\ summary statistics).
 \cite{arriaga2021summix} previously proposed method Summix, which finds the convex combination of ancestry proportions $\alpha_k$ (positive and sum to 1) which minimizes the following problem:
 \(\sum_{j=1}^M \left( f_j^{(0)} - \sum_{k=1}^K \alpha_k f_j^{(k)} \right)^2,\)
 where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
-In \cite{arriaga2021summix}, they used the five continental 1KG populations as reference.
-Here we provide reference allele frequencies for 5,816,590 genetic variants across 21 diverse ancestry groups (which are later merged in 18 groups in table \ref{tab:table1}).
+\cite{arriaga2021summix} used the five continental 1KG populations as reference.
+Here we provide reference allele frequencies for 5,816,590 genetic variants across 21 diverse ancestry groups (which are later merged into 18 groups in table \ref{tab:table1}).
 Moreover, we rely on the projection of our reference allele frequencies onto the PCA (principal component analysis) space computed from the corresponding UKBB (and 1KG) individuals.
-This is described in more details in the Supplementary Materials.
-Finding the ancestry proportions in the PCA space (rather than using the allele frequencies directly) provides more power to distinguish between close populations. 
-This enables us to use more reference populations (18) in order to get a more fine-grained measure of genetic diversity.
-We implement this method in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}, relying on R package quadprog \cite[]{turlach2013quadprog} for solving this quadratic programming optimization problem.
+Instead, we then minimize 
+\(\sum_{l=1}^L \left( p_l^{(0)} - \sum_{k=1}^K \alpha_k p_l^{(k)} \right)^2,\)
+with the same convex constraints and where $L$ is the number of PCs, $p_l^{(k)}$ is the projection of allele frequencies from population $k$ onto PC $l$, and $p_l^{(0)}$ is the (corrected) projection of allele frequencies from the cohort of interest onto PC $l$.
+Finding the ancestry proportions in the PCA space (rather than using the allele frequencies directly) provides more power to distinguish between close populations, which is the second innovation of this paper. 
+This enables us to use more reference populations in order to get a more fine-grained measure of genetic diversity.
+We implement this method in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}.
+The steps required by the proposed method are then 1/ read all summary statistics datasets into R; 2/ match variants and alleles between summary statistics and the reference allele frequencies we provide; 3/ project allele frequencies onto the PCA space (matrix multiplication); 4/ solve the final (small) quadratic programming problem, by relying on R package quadprog \cite[]{turlach2013quadprog}.
+All these steps are very fast and overall require a few minutes only for GWAS summary statistics with millions of variants.
 
 
 \section*{Results}
@@ -122,7 +126,6 @@ We download several GWAS summary statistics for which allele frequencies are rep
 We first apply function \texttt{snp\_ancestry\_summary} to more homogeneous samples as an empirical validation; when applying it to the Biobank Japan (Japanese cohort), FinnGen (Finnish), a Peruvian cohort, a Qatari cohort and Sub-Saharan African cohort, the ancestry proportions obtained match expectations (Table \ref{tab:table1}).
 When comparing our estimates with reported ancestries for more diverse cohorts, for example PAGE is composed of 44.6\% Hispanic-Latinos, 34.7\% African-Americans, 9.4\% Asians, 7.9\% Native Hawaiians and 3.4\% of some other ancestries (self-reported), whereas our estimates are of 25.4\% South American, 22.6\% European (including 15.8\% from South-West Europe), 34.1\% African, 2.7\% South Asian, 10.6\% East Asian, and 4.6\% Filipino.
 GWAS summary statistics from either European ancestries or more diverse ancestries all have a substantial proportion estimated from European ancestry groups, while ancestries from other continents are still largely underrepresented (Table \ref{tab:table1}). 
-
 
 % latex table generated in R 3.6.1 by xtable 1.8-4 package
 % Tue Nov 30 16:24:09 2021
@@ -158,18 +161,29 @@ GWAS summary statistics from either European ancestries or more diverse ancestri
 		\hline
 	\end{tabular}
 	\caption{Reference populations with their size (N), and corresponding ancestry proportions (in \%) inferred from the proposed \texttt{snp\_ancestry\_summary} method, for several GWAS summary statistics.
-	Note that ``Ireland'', ``United Kingdom'' and ``Scandinavia'' are merged as a single ``Europe (North West)'' group. Similarly, ``Europe (North East)'' and ``Europe (South East)'' are merged as a single ``Europe (East)'' group.
+	Note that, because they are very close ancestry groups, we merge a posteriori the ancestry coefficients $\alpha_k$ from ``Ireland'', ``United Kingdom'' and ``Scandinavia'' into a single ``Europe (North West)'' group, and similarly for ``Europe (North East)'' and ``Europe (South East)'' into a single ``Europe (East)'' group.
 	Citations for the allele frequencies used: the Biobank Japan (BBJ, \cite{sakaue2021cross}), FinnGen (\url{https://r5.finngen.fi/}), GWAS in Peruvians \cite[]{asgari2020positively}, GWAS in Qataris \cite[]{thareja2021whole}, GWAS in Sub-Saharan Africans (Africa, \cite{chen2019genome}), GERA \cite[]{hoffmann2018large}, PAGE \cite[]{wojcik2019genetic}, breast cancer (BrCa, \cite{michailidou2017association}), prostate cancer (PrCa, \cite{schumacher2018association}), coronary artery disease (CAD, \cite{nikpay2015comprehensive}), body fat percentage \cite[]{lu2016new}, COVID-19 \cite[]{ganna2021mapping}, eczema \cite[]{paternoster2015multi}, epilepsy \cite[]{consortium2018genome}, and serum urate \cite[]{tin2019target}. Several of these GWAS summary statistics have been downloaded through the NHGRI-EBI GWAS Catalog \cite[]{macarthur2017new}. \label{tab:table1}}
 \end{table}
+
+We then perform three secondary analyses.
+First, we compare the results obtained previously in Table \ref{tab:table1} with the results we would get without using the PCA projection of allele frequencies (i.e.\ equivalent to the Summix method).
+The resulting ancestry proportions are presented in Table S1 and are clearly less precise for Biobank Japan (BBJ) and FinnGen.
+Second, we compare previous results with the ones obtained using a smaller number of variants, by randomly sampling 100,000 variants to run the proposed method.
+The resulting ancestry proportions are presented in Table S2 and are highly consistent with the ones from Table \ref{tab:table1}, showing that 100,000 overlapping variants are enough to run the proposed method.
+Third, we also infer ancestry proportions for all 345 individuals of the Simons genome diversity project \cite[]{mallick2016simons} using the reference allele frequencies we provide and two methods. We use either our proposed method with the genotypes of an individual divided by 2 in place of allele frequencies, or by using the projection analysis of ADMIXTURE (\texttt{-P}, \cite{shringarpure2016efficient}).
+Results are very consistent between the two methods, and are overall as expected, further validating the proposed ancestry groups and the proposed method to infer ancestry proportions, which seems very precise even at the individual level.
+
+
 
 
 \section*{Discussion}
 
-Here we identify an unprecedentedly large and diverse set of ancestry groups within a single cohort, the UK Biobank.
-Using allele frequencies derived from these ancestry groups (and the individual-level data for computing the PCs), we show how to effectively measure diversity from GWAS summary statistics reporting allele frequencies.
+Here we have identified an unprecedentedly large and diverse set of ancestry groups within a single cohort, the UK Biobank.
+Using allele frequencies and principal components (PCs) derived from these ancestry groups, we show how to effectively measure diversity from GWAS summary statistics reporting allele frequencies.
 Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.
 Our work has limitations though. 
-First, it is not fully clear whether we can capture any ancestry, e.g.\ Native Hawaiians in the PAGE study; it seems that they are partly captured by the ``Philippines'' ancestry group we define.
+First, it is unknown whether we can effectively capture any existing ancestry as a combination of the 21 reference populations we defined.
+For example, it seems that Native Hawaiians in the PAGE study are partly captured by the ``Philippines'' ancestry group we define.
 Second, with the 21 ancestry groups we define, we probably capture a large proportion of the genetic diversity in Europe, but more fine-grained diversity in other continents may still be lacking.
 Third, when using the allele frequencies reported in the GWAS summary statistics, it is not clear whether they were computed from all individuals (i.e.\ before performing any quality control and filtering), and, for meta-analyses of binary traits, whether they were computed as a weighted average of total or effective sample sizes.
 Despite these limitations, we envision that the ancestry groups we define here will have many useful applications.
@@ -182,7 +196,7 @@ These ancestry groups could also be used for assigning ancestry in other cohorts
 
 \section*{Software and code availability}
 
-The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}).
+The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}) and a recent enough version can be installed from CRAN.
 Refer to the help page of function \texttt{snp\_ancestry\_summary} for how to use it.
 The set of reference allele frequencies for 5,816,590 genetic variants across 21 diverse ancestry groups defined here can be downloaded at \url{https://figshare.com/ndownloader/files/31620968} and PC loadings for all variants across 16 PCs at \url{https://figshare.com/ndownloader/files/31620953}.
 All code used for this paper is available at \url{https://github.com/privefl/freq-ancestry/tree/main/code}. 
@@ -191,13 +205,14 @@ We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017effic
 \section*{Acknowledgements}
 
 F.P.\ is supported by the Danish National Research Foundation (Niels Bohr Professorship to John McGrath) and by a Lundbeck Foundation Fellowship (R335-2019-2339 to Bjarni J. Vilhj\'almsson).
+The author thanks Shai Carmi for helpful discussions.
 The author thanks GenomeDK and Aarhus University for providing computational resources and support that contributed to these research results.
 This research has been conducted using the UK Biobank Resource under Application Number 58024.
 
 
 \section*{Declaration of Interests}
 
-The author declares no competing interests.
+The author does not have any competing interest to declare.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
