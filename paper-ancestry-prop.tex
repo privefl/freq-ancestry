@@ -8,7 +8,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin1]{inputenc}
 \usepackage{geometry}
-\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=1.5cm,rmargin=1.5cm}
+\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
 \usepackage{rotating}
 \usepackage{color}
 \usepackage{graphicx}
@@ -22,8 +22,8 @@
 
 %\renewcommand{\arraystretch}{1.8}
 
-\usepackage{xr}
-\externaldocument{paper-ancestry-prop-supp}
+%\usepackage{xr}
+%\externaldocument{paper-ancestry-prop-supp}
 
 %\linenumbers
 %\doublespacing
@@ -75,14 +75,16 @@
 
 \vspace*{5em}
 
-\abstract{\noindent\textbf{Motivation:} Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.\\
+
+\begin{abstract}
+\noindent\textbf{Motivation:} Measuring genetic diversity is an important problem because increasing genetic diversity is key to making new genetic discoveries, while also being a major source of confounding to be aware of in genetics studies.\\
 \textbf{Results:} Using the UK Biobank data, a prospective cohort study with deep genetic and phenotypic data collected on almost 500,000 individuals from across the United Kingdom, we carefully define 21 distinct ancestry groups from all four corners of the world. 
 These ancestry groups can serve as a global reference of worldwide populations, with a handful of applications.
 Here we develop a method that uses allele frequencies and principal components derived from these ancestry groups to effectively measure ancestry proportions from allele frequencies of any genetic dataset.\\
 \textbf{Availability:} This method is implemented as function snp\_ancestry\_summary as part of R package bigsnpr.\\
 \textbf{Contact:} \href{florian.prive.21@gmail.com}{florian.prive.21@gmail.com}\\
 %\textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}	online.
-}
+\end{abstract}
 
 \vspace*{5em}
 
@@ -108,15 +110,20 @@ As a direct application of these groups, we propose a new method to estimate glo
 \(\sum_{j=1}^M \left( f_j^{(0)} - \sum_{k=1}^K \alpha_k f_j^{(k)} \right)^2,\)
 where $M$ is the number of variants, $K$ the number of reference populations, $f_j^{(k)}$ is the frequency of variant $j$ in population $k$, and $f_j^{(0)}$ is the frequency of variant $j$ in the cohort of interest.
 \cite{arriaga2021summix} used the five continental 1KG populations as reference.
+
 Here we provide reference allele frequencies for 5,816,590 genetic variants across 21 diverse ancestry groups (which are later merged into 18 groups in table \ref{tab:table1}).
-Moreover, we rely on the projection of our reference allele frequencies onto the PCA (principal component analysis) space computed from the corresponding UKBB (and 1KG) individuals.
+Moreover, we rely on the projection of our reference allele frequencies onto the PCA (principal component analysis) space computed from the corresponding UKBB (and 1KG) individuals, and also make these PC loadings available for download.
 Instead, we then minimize 
 \(\sum_{l=1}^L \left( p_l^{(0)} - \sum_{k=1}^K \alpha_k p_l^{(k)} \right)^2,\)
-with the same convex constraints and where $L$ is the number of PCs, $p_l^{(k)}$ is the projection of allele frequencies from population $k$ onto PC $l$, and $p_l^{(0)}$ is the (corrected) projection of allele frequencies from the cohort of interest onto PC $l$.
+with the same convex constraints on ancestry proportions $\alpha_k$, and where $L$ is the number of PCs, $p_l^{(k)}$ is the projection of allele frequencies from population $k$ onto PC $l$, and $p_l^{(0)}$ is the (corrected) projection of allele frequencies from the cohort of interest onto PC $l$.
+Note that we need to correct for the shrinkage when projecting a new dataset (here the allele frequencies from the GWAS summary statistics) onto the PC space \cite[]{prive2020efficient}.
 Finding the ancestry proportions in the PCA space (rather than using the allele frequencies directly) provides more power to distinguish between close populations, which is the second innovation of this paper. 
 This enables us to use more reference populations in order to get a more fine-grained measure of genetic diversity.
-We implement this method in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}.
-The steps required by the proposed method are then 1/ read all summary statistics datasets into R; 2/ match variants and alleles between summary statistics and the reference allele frequencies we provide; 3/ project allele frequencies onto the PCA space (matrix multiplication); 4/ solve the final (small) quadratic programming problem, by relying on R package quadprog \cite[]{turlach2013quadprog}.
+
+The steps required by the proposed method are then 1/ read all summary statistics datasets into R, i.e.\ the reference allele frequencies and corresponding PC loadings we provide for download as well as the GWAS summary statistics containing the allele frequencies of interest; 2/ match variants and alleles between summary statistics and the reference allele frequencies we provide; 3/ project allele frequencies onto the PCA space (matrix multiplication); 4/ solve the final (small) quadratic programming problem, by relying on R package quadprog \cite[]{turlach2013quadprog}.
+Steps 3 and 4 are now implemented in function \texttt{snp\_ancestry\_summary} in our R package bigsnpr \cite[]{prive2017efficient}.
+Step 2 can be performed using existing function \texttt{snp\_match}.
+A tutorial is provided at \url{https://privefl.github.io/bigsnpr/articles/ancestry.html}.
 All these steps are very fast and overall require a few minutes only for GWAS summary statistics with millions of variants.
 
 
@@ -197,7 +204,7 @@ These ancestry groups could also be used for assigning ancestry in other cohorts
 \section*{Software and code availability}
 
 The newest version of R package bigsnpr can be installed from GitHub (see \url{https://github.com/privefl/bigsnpr}) and a recent enough version can be installed from CRAN.
-Refer to the help page of function \texttt{snp\_ancestry\_summary} for how to use it.
+A tutorial on ancestry proportions and ancestry grouping is available at \url{https://privefl.github.io/bigsnpr/articles/ancestry.html}.
 The set of reference allele frequencies for 5,816,590 genetic variants across 21 diverse ancestry groups defined here can be downloaded at \url{https://figshare.com/ndownloader/files/31620968} and PC loadings for all variants across 16 PCs at \url{https://figshare.com/ndownloader/files/31620953}.
 All code used for this paper is available at \url{https://github.com/privefl/freq-ancestry/tree/main/code}. 
 We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
