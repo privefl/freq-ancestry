@@ -14,8 +14,12 @@ paper-ancestry-prop*.pdf
 natbib.*
 tmp-data/
 tmp-code/
+!tmp-code/quadprog.cpp
 ancestry-proportions.tex
 projection.csv.gz
 ref_freqs.csv.gz
 cover-letter.pdf
 ancestry_sgdp.xlsx
+cabios-template
+response-to-reviewers.pdf
+response-to-reviewers2.pdf

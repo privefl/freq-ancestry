@@ -1,6 +1,11 @@
 //  THIS IS BASED ON THE FORTRAN CODE OF R PACKAGE QUADPROG, REWRITTEN IN RCPP
 //  IT ALSO ASSUMES THAT DMAT IS ALREADY FACTORIZED
 //
+//  Rcpp Port
+//  Copyright (C) 2024 Florian Privé <florian.prive.21@gmail.com>
+//  Original Fortran Code
+//  Copyright (C) 1995-2010 Berwin A. Turlach <Berwin.Turlach@gmail.com>
+//
 //  this routine uses the Goldfarb/Idnani algorithm to solve the
 //  following minimization problem:
 //
@@ -39,8 +44,7 @@ List qpgen2(NumericMatrix& dmat,
   int r = std::min(n, q);
   int l = 2 * n + r * (r + 5) / 2 + 2 * q + 1;
 
-  // double tt, gc, gs, nu
-  // logical t2min
+  // double gc, gs, nu
 
   IntegerVector iact(q);  // the constraints which are active in the final fit
   NumericVector sol(n);   // the final solution (x in the notation above)
@@ -117,7 +121,7 @@ List qpgen2(NumericMatrix& dmat,
       } else {
         work[l] = -std::abs(sum);
         if (sum > 0) {
-          // switch sign of bvec and amat.col(i)
+          // switch sign of bvec[i] and amat.col(i)
           bvec[i] *= -1;
           for (int j = 0; j < n; j++) amat(j, i) *= -1;
         }
@@ -203,164 +207,131 @@ List qpgen2(NumericMatrix& dmat,
         }
       }
 
-      //
       // test if the z vector is equal to zero
-      //
-      sum = 0.d0
-      do 110 i=iwzv+1,iwzv+n
-      sum = sum + work(i)*work(i)
-        110  continue
-        if (abs(sum) .LE. vsmall) then
-        //
-        // No step in primal space such that the new constraint becomes
-        // feasible. Take step in dual space and drop a constant.
-        //
-        if (t1inf) Rcpp::stop("constraints are inconsistent, no solution!")
+      double sum = 0;
+      for (int i = 0; i < n; i++) {
+        int i2 = iwzv + i;
+        sum += work[i2] * work[i2];
+      }
+      if (sum <= vsmall) {
+        // No step in primal space such that the new constraint becomes feasible.
+        if (t1inf) Rcpp::stop("constraints are inconsistent, no solution!");
 
-          //
-          // we take a partial step in dual space and drop constraint it1,
+        // we take a partial step in dual space and drop constraint it1,
+        // that is, we drop the it1-th active constraint.
+        // then we continue at step 2(a) (marked by label 55)
+        for (int i = 0; i < nact; i++) work[iwuv + i] -= t1 * work[iwrv + i];
+        work[iwuv + nact + 1] += t1;
+        break;  // of loop 55
+      } else {
+        // compute full step length t2, minimum step in primal space such that the
+        // constraint becomes feasible. keep sum (which is z^Tn^+) to update crval below!
+        double sum = 0;
+        for (int i = 0; i < n; i++) sum += work[iwzv + i] * amat(i, nvl);
+        double tt = -work[iwsv + nvl] / sum;
+        bool t2min = true;
+        if (!t1inf && t1 < tt) {
+          tt = t1;
+          t2min = false;
+        }
+
+        // take step in primal and dual space
+        for (int i = 0; i < n; i++) sol[i] += tt * work[iwzv + i];
+        crval += tt * sum * (tt / 2 + work[iwuv + nact + 1]);
+        for (int i = 0; i < n; i++) work[iwuv + i] -= tt * work[iwrv + i];
+        work[iwuv + nact + 1] += tt;
+
+        // if it was a full step, then we check wheter further constraints are violated,
+        // otherwise we can drop the current constraint and iterate once more
+        if (t2min) {
+
+          // we took a full step. Thus add constraint nvl to the list of active
+          // constraints and update J and R
+          nact++;
+          iact[nact] = nvl;
+
+          // to update R we have to put the first nact-1 components of the d vector
+          // into column (nact) of R
+          l = iwrm + (nact - 1) * nact / 2 + 1;
+          for (int i = 0; i < (nact - 1); i++, l++) work[l] = work[i];
+
+          // if now nact=n, then we just have to add the last element to the new
+          // row of R.
+          // Otherwise we use Givens transformations to turn the vector d(nact:n)
+          // into a multiple of the first unit vector. That multiple goes into the
+          // last element of the new row of R and J is accordingly updated by the
+          // Givens transformations.
+          if (nact == n) {
+            work[l] = work[n];  // TODO: PROBLEM?
+          } else {
+            for (int i = n - 1; i >= nact, i--) {
+              // we have to find the Givens rotation which will reduce the element
+              // (l1) of d to zero.
+              // if it is already zero we don't have to do anything, except of
+              // decreasing l1
+              if (work[i] == 0) continue;
+              double gc = std::max(std::abs(work[i - 1]), std::abs(work[i]));
+              double gs = std::min(std::abs(work[i - 1]), std::abs(work[i]));
+              temp = std::abs(gc * ::sqrt(1 + gs / gc * gs gc));
+              temp = (work[i - 1] >= 0) ? temp : -temp;
+              gc = work[i - 1] / temp;
+              gs = work[i]     / temp;
+
+              // The Givens rotation is done with the matrix (gc gs, gs -gc).
+              // If gc is one, then element (i) of d is zero compared with element
+              // (l1-1). Hence we don't have to do anything.
+              // If gc is zero, then we just have to switch column (i) and column (i-1)
+              // of J. Since we only switch columns in J, we have to be careful how we
+              // update d depending on the sign of gs.
+              // Otherwise we have to apply the Givens rotation to these columns.
+              // The i-1 element of d has to be updated to temp.
+              if (gc == 1) continue;
+              if (gc == 0) {
+                work[i - 1] = gs * temp;
+                for (int j = 0; j < n; j++) {
+                  temp           = dmat(j, i - 1);
+                  dmat(j, i - 1) = dmat(j, i);
+                  dmat(j, i)     = temp;
+                }
+              } else {
+                work[i - 1] = temp;
+                double nu = gs / (1 + gc);
+                for (int j = 0; j < n; j++) {
+                  temp           = gc * dmat(j, i - 1) + gs * dmat(j, i);
+                  dmat(j, i)     = nu * (dmat(j, i - 1) + temp) - dmat(j, i);
+                  dmat(j, i - 1) = temp;
+                }
+              }
+            }
+
+            // l is still pointing to element (nact,nact) of the matrix R.
+            // So store d(nact) in R(nact,nact)
+            work[l] = work[nact];
+          }
+
+        } else {  // not t2min
+
+          // we took a partial step in dual space. Thus drop constraint it1,
           // that is, we drop the it1-th active constraint.
           // then we continue at step 2(a) (marked by label 55)
-          //
-          do 111 i=1,nact
-          work(iwuv+i) = work(iwuv+i) - t1*work(iwrv+i)
-            111        continue
-            work(iwuv+nact+1) = work(iwuv+nact+1) + t1
-          goto 700
-          endif
-          else
-            //
-            // compute full step length t2, minimum step in primal space such that
-            // the constraint becomes feasible.
-            // keep sum (which is z^Tn^+) to update crval below!
-            //
-            sum = 0.d0
-          do 120 i = 1,n
-          sum = sum + work(iwzv+i)*amat(i,nvl)
-            120     continue
-            tt = -work(iwsv+nvl)/sum
-          t2min = .TRUE.
-          if (.NOT. t1inf) then
-          if (t1 .LT. tt) then
-          tt    = t1
-          t2min = .FALSE.
-          endif
-          endif
-          //
-          // take step in primal and dual space
-          //
-          do 130 i=1,n
-          sol(i) = sol(i) + tt*work(iwzv+i)
-            130     continue
-            crval = crval + tt*sum*(tt/2.d0 + work(iwuv+nact+1))
-            do 131 i=1,nact
-            work(iwuv+i) = work(iwuv+i) - tt*work(iwrv+i)
-              131     continue
-              work(iwuv+nact+1) = work(iwuv+nact+1) + tt
-            //
-            // if it was a full step, then we check wheter further constraints are
-            // violated otherwise we can drop the current constraint and iterate once
-            // more
-            if(t2min) then
-            //
-            // we took a full step. Thus add constraint nvl to the list of active
-            // constraints and update J and R
-            //
-            nact = nact + 1
-            iact(nact) = nvl
-            //
-            // to update R we have to put the first nact-1 components of the d vector
-            // into column (nact) of R
-            //
-            l = iwrm + ((nact-1)*nact)/2 + 1
-            do 150 i=1,nact-1
-            work(l) = work(i)
-              l = l+1
-            150        continue
-            //
-            // if now nact=n, then we just have to add the last element to the new
-            // row of R.
-            // Otherwise we use Givens transformations to turn the vector d(nact:n)
-            // into a multiple of the first unit vector. That multiple goes into the
-            // last element of the new row of R and J is accordingly updated by the
-            // Givens transformations.
-            //
-            if (nact .EQ. n) then
-            work(l) = work(n)
-              else
-                do 160 i=n,nact+1,-1
-                //
-                // we have to find the Givens rotation which will reduce the element
-                // (l1) of d to zero.
-                // if it is already zero we don't have to do anything, except of
-                // decreasing l1
-                //
-                if (work(i) .EQ. 0.d0) goto 160
-                gc   = max(abs(work(i-1)),abs(work(i)))
-                  gs   = min(abs(work(i-1)),abs(work(i)))
-                  temp = sign(gc*sqrt(1+(gs/gc)*(gs/gc)), work(i-1))
-                  gc   = work(i-1)/temp
-                gs   = work(i)/temp
-                //
-                // The Givens rotation is done with the matrix (gc gs, gs -gc).
-                // If gc is one, then element (i) of d is zero compared with element
-                // (l1-1). Hence we don't have to do anything.
-                // If gc is zero, then we just have to switch column (i) and column (i-1)
-                // of J. Since we only switch columns in J, we have to be careful how we
-                // update d depending on the sign of gs.
-                // Otherwise we have to apply the Givens rotation to these columns.
-                // The i-1 element of d has to be updated to temp.
-                //
-                if (gc .EQ. 1.d0) goto 160
-                if (gc .EQ. 0.d0) then
-                work(i-1) = gs * temp
-                do 170 j=1,n
-                temp        = dmat(j,i-1)
-                  dmat(j,i-1) = dmat(j,i)
-                  dmat(j,i)   = temp
-                170                 continue
-                else
-                  work(i-1) = temp
-                nu = gs/(1.d0+gc)
-                  do 180 j=1,n
-                  temp        = gc*dmat(j,i-1) + gs*dmat(j,i)
-                    dmat(j,i)   = nu*(dmat(j,i-1)+temp) - dmat(j,i)
-                    dmat(j,i-1) = temp
-                  180                 continue
-                  endif
-                  160           continue
-                  //
-                  // l is still pointing to element (nact,nact) of the matrix R.
-                  // So store d(nact) in R(nact,nact)
-                  work(l) = work(nact)
-                    endif
-                  else
-                    //
-                    // we took a partial step in dual space. Thus drop constraint it1,
-                    // that is, we drop the it1-th active constraint.
-                    // then we continue at step 2(a) (marked by label 55)
-                    // but since the fit changed, we have to recalculate now "how much"
-                    // the fit violates the chosen constraint now.
-                    //
-                    sum = -bvec(nvl)
-                    do 190 j = 1,n
-                    sum = sum + sol(j)*amat(j,nvl)
-                      190        continue
-                      if( nvl .GT. meq ) then
-                      work(iwsv+nvl) = sum
-                      else
-                        work(iwsv+nvl) = -abs(sum)
-                        if( sum .GT. 0.d0) then
-                        do 191 j=1,n
-                        amat(j,nvl) = -amat(j,nvl)
-                          191              continue
-                          bvec(nvl) = -bvec(nvl)
-                          endif
-                        endif
-                        goto 700
-                        endif
-                        endif
-                        goto 50
+          // but since the fit changed, we now have to recalculate "how much"
+          // the fit violates the chosen constraint.
+          double sum = -bvec[nvl];
+          for (int j = 0; j < n; j++) sum += sol[j] * amat(j, nvl);
+          if (nvl > meq) {
+            work[iwsv + nvl] = sum;
+          } else {
+            work[iwsv + nvl] = -std::abs(sum);
+            if (sum > 0) {
+              // switch sign of bvec[nvl] and amat.col(nvl)
+              bvec[nvl] *= -1;
+              for (int j = 0; j < n; j++) amat(j, nvl) *= -1;
+            }
+          }
+          break;  // of loop 55
+        }
+      }
+
     }
     //
     // Drop constraint it1
